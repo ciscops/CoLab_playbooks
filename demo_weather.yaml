@@ -1,0 +1,21 @@
+---
+- hosts: localhost
+  gather_facts: yes
+  tasks:
+  - name: Make a GET API call
+    uri:
+      url: "http://api.openweathermap.org/data/2.5/weather?zip=33556,US&appid={{ key }}"
+      return_content: yes
+    register: this
+  - name: debug using message
+    debug:
+      msg: "OK, here it is{{ this.content }} this is added to the end"
+  - name: debug using the var instead of msg
+    debug:
+      var: this.content
+  - name: save to json
+    set_fact:
+      out_json: "{{ this.content|from_json }}"
+  - name: print the json
+    debug:
+      var: out_json.weather[0].description
