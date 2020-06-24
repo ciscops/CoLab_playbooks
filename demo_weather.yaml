@@ -4,7 +4,7 @@
   tasks:
   - name: Make a GET API call
     uri:
-      url: "http://api.openweathermap.org/data/2.5/weather?zip=33556,US&appid={{ key }}"
+      url: "http://api.openweathermap.org/data/2.5/weather?zip={{ zip }},US&appid={{ key }}"
       return_content: yes
     register: this
   - name: debug using message
