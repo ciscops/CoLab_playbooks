@@ -7,13 +7,13 @@
   - name: Create new IAM user
     iam:
       iam_type: user
-      name: "{{ username }}"
+      name: "{{ aws_username }}"
       state: present
       aws_access_key: "{{lookup('env','ACCESS_KEY')}}"
       aws_secret_key: "{{lookup('env','ACCESS_SECRET_KEY')}}"
-      password: "{{ password }}"
+      password: "{{ aws_password }}"
       access_key_state: create
-      groups: "{{ group }}"
+      groups: "{{ iam_group }}"
     register: iam_user
 
   - debug: var=iam_user
