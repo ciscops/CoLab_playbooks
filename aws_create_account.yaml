@@ -9,8 +9,8 @@
       iam_type: user
       name: "{{ aws_username }}"
       state: present
-#      aws_access_key: "{{lookup('env','ACCESS_KEY')}}"
-#      aws_secret_key: "{{lookup('env','ACCESS_SECRET_KEY')}}"
+      aws_access_key: "{{lookup('env','AWS_ACCESS_KEY_ID')}}"
+      aws_secret_key: "{{lookup('env','AWS_SECRET_ACCESS_KEY')}}"
       password: "{{ aws_password }}"
       access_key_state: create
       groups: "{{ iam_group }}"
