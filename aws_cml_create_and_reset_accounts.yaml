@@ -108,6 +108,7 @@
       update_password: on_create
     register: iam_user
     ignore_errors: true
+  - debug: var=iam_user
   - name: Get AWS Account number
     set_fact:
       aws_account_number: "{{ iam_user.user_meta.created_user.arn.replace('arn:aws:iam::', '').replace(':user/' + colab_username, '') }}"
