@@ -19,6 +19,8 @@
     api_cml_create_account: '/api/v0/users/'
     message: ''
   tasks:
+  - debug: var=cml_admin_account
+  - debug: var=cml_admin_password
   - name: Generate initial password uppercase letters
     shell:
       cmd: tr -d -c 'A-Z' < /dev/urandom | head -c 5
@@ -140,6 +142,7 @@
     set_fact:
       cml_results: "{{ cml_results }} + [ { 'server': '{{ item.item }}', 'status_code': '{{ item.status }}' }]"
     when: item.failed == true
+    ignore_errors: yes
     with_items: "{{ token_results.results }}"
   - name: Create CML Accounts
     uri:
