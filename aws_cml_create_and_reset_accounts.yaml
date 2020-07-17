@@ -19,8 +19,6 @@
     api_cml_create_account: '/api/v0/users/'
     message: ''
   tasks:
-  - debug: var=cml_admin_account
-  - debug: var=cml_admin_password
   - name: Generate initial password uppercase letters
     shell:
       cmd: tr -d -c 'A-Z' < /dev/urandom | head -c 5
