@@ -7,7 +7,6 @@
      user:
        name: "{{ username }}"
        comment: "UnPrivileged User"
-       group: "{{ username }}"
        groups: docker
        shell: /bin/bash
        generate_ssh_key: yes
