@@ -173,11 +173,11 @@
     set_fact:
       message: "{{ message + ' - ' + 'AWS Account Deleted! \n' }}"
       check_flag: true
-    when: iam_user.changed == true
+    when: iam_user.changed == true and iam_user.failed == false # and did't fail
   - name: Create Fail messages for AWS
     set_fact:
       message: "{{ message + ' - ' + 'AWS Account Deletion Failed: ' + iam_user.msg + ' \n' }}"
-    when: iam_user.changed == false
+    when: iam_user.changed == false and iam_user.failed == true
     ignore_errors: true
   - name: Send WxT Message
     uri:
