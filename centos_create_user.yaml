@@ -6,7 +6,7 @@
    - name: Add user to remote server
      user:
        name: "{{ username }}"
-       password: "{{ password }}"
+       password: "{{ password | password_hash('sha512', 'mysecretsalt')}}"
        update_password: always
        groups: docker
        shell: /bin/bash
