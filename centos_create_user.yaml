@@ -1,0 +1,15 @@
+---
+- hosts: login
+  gather_facts: no
+  connection: ssh
+  tasks:
+   - name: Add user to remote server
+     user:
+       name: {{ username }}
+       comment: "UnPrivileged User"
+       group: {{ username }}
+       groups: docker
+       shell: /bin/bash
+       generate_ssh_key: yes
+       ssh_key_bits: 2048
+       ssh_key_file: .ssh/id_rsa
