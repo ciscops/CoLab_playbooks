@@ -5,9 +5,9 @@
   tasks:
    - name: Add user to remote server
      user:
-       name: {{ username }}
+       name: "{{ username }}"
        comment: "UnPrivileged User"
-       group: {{ username }}
+       group: "{{ username }}"
        groups: docker
        shell: /bin/bash
        generate_ssh_key: yes
