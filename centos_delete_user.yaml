@@ -10,6 +10,8 @@
         name: "{{ username }}"
         state: absent
         remove: yes
+      ignore_errors: true
+      register: login_server_user
   - name: Delete Success message for Login Server
     set_fact:
       message: "{{ message + ' - ' + inventory_hostname + ' Account Deleted! \n' }}"
