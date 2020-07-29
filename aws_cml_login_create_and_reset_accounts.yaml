@@ -259,7 +259,7 @@
       url: "https://api.ciscospark.com/v1/messages"
       method: POST
       return_content: yes
-      body: "{{ {'toPersonEmail': colab_email, 'markdown': hostvars['cpn-rtp-login1']['message'] } | to_json }}"
+      body: "{{ {'toPersonEmail': colab_email, 'markdown': hostvars[groups['host_group'][0]].message } | to_json }}"
       validate_certs: no
       headers: "{{ {
         'Content-Type': 'application/json',
