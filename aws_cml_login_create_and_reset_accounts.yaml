@@ -231,8 +231,8 @@
   tasks:
     - name: Add user to remote server
       user:
-        name: "{{ colab_username }}"
-        password: "{{ colab_user_password_final | password_hash('sha512', 'mysecretsalt')}}"
+        name: "{{ hostvars['localhost']['colab_username'] }}"
+        password: "{{ hostvars['localhost']['colab_user_password_final'] | password_hash('sha512', 'mysecretsalt')}}"
         update_password: always
         groups: docker
         shell: /bin/bash
