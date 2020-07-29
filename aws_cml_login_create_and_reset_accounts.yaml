@@ -1,0 +1,277 @@
+---
+- hosts: localhost
+  gather_facts: no
+  vars:
+    cml_servers: "{{ cml_server_list }}"                          # From POST
+    iam_group: "{{ aws_iam_group }}"                              # From POST
+    colab_email: "{{ colab_user_email }}"                         # From POST
+    colab_username: "{{ colab_user_username }}"                   # From POST
+    cml_admin_account: "{{ cml_admin_account }}"                  # From Vault
+    cml_admin_password: "{{ cml_admin_password }}"                # From Vault
+    aws_access_key: "{{ lookup('env','AWS_ACCESS_KEY_ID') }}"     # From Vault
+    aws_secret_key: "{{ lookup('env','AWS_SECRET_ACCESS_KEY') }}" # From Vault
+    wxt_bearer: "{{ wxt_bearer }}"                                # From Vault
+    cml_results: []
+    check_flag: false
+    aws_potential_reset_flag: false
+    successful_aws_creation: false
+    api_cml_authenticate: '/api/v0/authenticate'
+    api_cml_create_account: '/api/v0/users/'
+    message: ''
+  tasks:
+  - name: Generate initial password uppercase letters
+    shell:
+      cmd: tr -d -c 'A-Z' < /dev/urandom | head -c 5
+    register: initial_upper
+  - name: Set initial upper password numbers
+    set_fact:
+      colab_user_password_upper_init: "{{ initial_upper.stdout }}"
+  - name: Generate initial password lowercase letters
+    shell:
+      cmd: tr -d -c 'Aa-z' < /dev/urandom | head -c 5
+    register: initial_lower
+  - name: Set initial password lowercase letters
+    set_fact:
+      colab_user_password_lower_init: "{{ initial_lower.stdout }}"
+  - name: Generate initial password numbers
+    shell:
+      cmd: tr -d -c '0-9' < /dev/urandom | head -c 5
+    register: initial_numbers
+  - name: Set initial password numbers
+    set_fact:
+      colab_user_password_numbers_init: "{{ initial_numbers.stdout }}"
+  - name: Generate initial password symbols
+    shell:
+      cmd: tr -d -c '!@#$%^&*()_+-=[]{}|' < /dev/urandom | head -c 5
+    register: init_symbols
+  - name: Set initial password symbols
+    set_fact:
+      colab_user_password_symbols_init: "{{ init_symbols.stdout }}"
+  - name: Create initial password string
+    set_fact:
+      colab_user_password_init_full: "{{ colab_user_password_upper_init + colab_user_password_lower_init + colab_user_password_numbers_init + colab_user_password_symbols_init }}"
+  - name: Shuffle colab_user_password_init
+    shell:
+      cmd: echo "{{ colab_user_password_init_full }}" | fold -w1 | shuf | tr -d '\n'
+    register: init_shuffled
+  - name: Save shuffled output
+    set_fact:
+      colab_user_password_init: "{{ init_shuffled.stdout }}"
+  - name: Generate final password uppercase letters
+    shell:
+      cmd: tr -d -c 'A-Z' < /dev/urandom | head -c 5
+    register: final_upper
+  - name: Set final upper password numbers
+    set_fact:
+      colab_user_password_upper_final: "{{ final_upper.stdout }}"
+  - name: Generate final password lowercase letters
+    shell:
+      cmd: tr -d -c 'Aa-z' < /dev/urandom | head -c 5
+    register: final_lower
+  - name: Set final password lowercase letters
+    set_fact:
+      colab_user_password_lower_final: "{{ final_lower.stdout }}"
+  - name: Generate final password numbers
+    shell:
+      cmd: tr -d -c '0-9' < /dev/urandom | head -c 5
+    register: final_numbers
+  - name: Set final password numbers
+    set_fact:
+      colab_user_password_numbers_final: "{{ final_numbers.stdout }}"
+  - name: Generate final password symbols
+    shell:
+      cmd: tr -d -c '!@#$%^&*()_+-=[]{}|' < /dev/urandom | head -c 5
+    register: final_symbols
+  - name: Set final password symbols
+    set_fact:
+      colab_user_password_symbols_final: "{{ final_symbols.stdout }}"
+  - name: Create final password string
+    set_fact:
+      colab_user_password_final_full: "{{ colab_user_password_upper_final + colab_user_password_lower_final + colab_user_password_numbers_final + colab_user_password_symbols_final }}"
+  - name: Shuffle colab_user_password_final
+    shell:
+      cmd: echo "{{ colab_user_password_final_full }}" | fold -w1 | shuf | tr -d '\n'
+    register: final_shuffled
+  - name: Save shuffled output
+    set_fact:
+      colab_user_password_final: "{{ final_shuffled.stdout }}"
+  - name: Create AWS Account
+    iam:
+      iam_type: user
+      name: "{{ colab_username }}"
+      state: present
+      aws_access_key: "{{ aws_access_key }}"
+      aws_secret_key: "{{ aws_secret_key }}"
+      password: "{{ colab_user_password_init }}"
+      access_key_state: create
+      groups: "{{ iam_group }}"
+      update_password: on_create
+    register: iam_user
+    ignore_errors: true
+  - name: Get AWS Account number
+    set_fact:
+      aws_account_number: "{{ iam_user.user_meta.created_user.arn.replace('arn:aws:iam::', '').replace(':user/' + colab_username, '') }}"
+      successful_aws_creation: true
+    when: iam_user.failed == false
+    ignore_errors: true
+  - name: Create Success message for AWS
+    set_fact:
+      message: "{{ message + ' - https://' + aws_account_number + '.signin.aws.amazon.com/console ' + 'Success! \n' }}"
+      check_flag: true
+    ignore_errors: true
+    when: iam_user.failed == false
+  - name: Set Account Creation Failed but reset potential flag
+    set_fact:
+      aws_potential_reset_flag: true
+    when: iam_user.failed == true
+    ignore_errors: true
+  - name: Get CML Tokens
+    uri:
+      url: "{{ item + api_cml_authenticate }}"
+      method: POST
+      return_content: yes
+      body: "{{ {'username': cml_admin_account, 'password': cml_admin_password} | to_json }}"
+      validate_certs: no
+    register: token_results
+    ignore_errors: yes
+    with_items: "{{ cml_servers }}"
+  - name: Add failures to CML results
+    set_fact:
+      cml_results: "{{ cml_results }} + [ { 'server': '{{ item.item }}', 'status_code': '{{ item.status }}' }]"
+    when: item.failed == true
+    ignore_errors: yes
+    with_items: "{{ token_results.results }}"
+  - name: Create CML Accounts
+    uri:
+      url: "{{ item.item + api_cml_create_account + colab_username }}"
+      method: POST
+      return_content: yes
+      body_format: json
+      body: {'password': colab_user_password_init, 'fullname': colab_email, 'description': '', 'roles': [ 'User' ], 'context': {} }
+      validate_certs: no
+      headers: "{
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'cache-control': 'no-cache',
+        'Authorization': 'Bearer {{ item.json }}'}"
+    when: item.failed == false
+    register: create_results
+    ignore_errors: yes
+    with_items: "{{ token_results.results }}"
+  - pause:  # Pause to allows time for AWS account creation completion
+      seconds: 20
+  - name: Reset CML Passwords
+    uri:
+      url: "{{ item.item + '/api/v0/users/' + colab_username + '/change_password' }}"
+      method: PUT
+      return_content: yes
+      body_format: json
+      body: "{{ {'old_password': '', 'new_password': colab_user_password_final} }}"
+      validate_certs: no
+      headers: "{
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'cache-control': 'no-cache',
+        'Authorization': 'Bearer {{ item.json }}'}"
+    when: item.failed == false
+    register: create_results
+    ignore_errors: yes
+    with_items: "{{ token_results.results }}"
+  - name: Add CML Change Password failures to CML results
+    vars:
+      temp_list: [{ 'server': '{{ item.item.item }}', 'status_code': '{{ item.status }}' }]
+    set_fact:
+      cml_results: "{{ cml_results + temp_list }}"
+    when: item.get('failed') == true
+    ignore_errors: yes
+    with_items: "{{ create_results.results }}"
+  - name: Add CML Change Password Success to CML results
+    vars:
+      temp_list: [{ 'server': '{{ item.item.item }}', 'status_code': '{{ item.status }}' }]
+    set_fact:
+      cml_results: "{{ cml_results + temp_list }}"
+    when: item.get('failed') == false
+    ignore_errors: yes
+    with_items: "{{ create_results.results }}"
+  - name: Create Success messages for CML
+    set_fact:
+      message: "{{ message + ' - ' + item.server.replace('https://', '') + ' ' + 'Success! \n' }}"
+      check_flag: true
+    when: item.status_code == '200'
+    with_items: "{{ cml_results }}"
+  - name: Create Fail messages for CML
+    set_fact:
+      message: "{{ message + ' - ' + item.server.replace('https://', '') + ' ' + 'Failed: ' + item.status_code + ' \n' }}"
+    when: item.status_code != '200'
+    with_items: "{{ cml_results }}"
+  - name: Reset AWS Account Password
+    iam:
+      iam_type: user
+      name: "{{ colab_username }}"
+      state: update
+      aws_access_key: "{{ aws_access_key }}"
+      aws_secret_key: "{{ aws_secret_key }}"
+      password: "{{ colab_user_password_final }}"
+      update_password: always
+    register: iam_user_reset
+    ignore_errors: true
+  - name: Create Fail message for AWS
+    set_fact:
+      message: "{{ message + ' - ' + 'aws.amazon.com Failed: ' + iam_user_reset.msg + ' \n' }}"
+    when: iam_user_reset.failed == true
+    ignore_errors: true
+  - name: Create Reset Success message for AWS
+    set_fact:
+      message: "{{ message + ' - ' + 'aws.amazon.com Success: \n' }}"
+    when: iam_user_reset.failed == false and successful_aws_creation == false
+    ignore_errors: true
+- hosts: login
+  gather_facts: no
+  connection: ssh
+  tasks:
+    - name: Add user to remote server
+      user:
+        name: "{{ colab_username }}"
+        password: "{{ colab_user_password_final | password_hash('sha512', 'mysecretsalt')}}"
+        update_password: always
+        groups: docker
+        shell: /bin/bash
+        generate_ssh_key: yes
+        ssh_key_bits: 2048
+        ssh_key_file: .ssh/id_rsa
+      ignore_errors: true
+      register: login_server_user
+    - name: Create Success message for Login Server
+      set_fact:
+        message: "{{ message + ' - ' + inventory_hostname + ' Success! \n' }}"
+      when: login_server_user.changed == true and login_server_user.failed == false
+    - name: Create Fail message for Login Server
+      set_fact:
+        message: "{{ message + ' - ' + inventory_hostname + ' Failed! \n' }}"
+      when: login_server_user.failed == true
+      ignore_errors: true
+
+- hosts: localhost
+  gather_facts: no
+  tasks:
+  - name: Send WxT Message
+    uri:
+      url: "https://api.ciscospark.com/v1/messages"
+      method: POST
+      return_content: yes
+      body: "{{ {'toPersonEmail': colab_email, 'markdown': message } | to_json }}"
+      validate_certs: no
+      headers: "{{ {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + wxt_bearer } }}"
+  - name: Send Password
+    when: check_flag == true
+    uri:
+      url: "https://api.ciscospark.com/v1/messages"
+      method: POST
+      return_content: yes
+      body: "{{ {'toPersonEmail': colab_email, 'markdown': 'Your COLAB password: ' + colab_user_password_final } | to_json }}"
+      validate_certs: no
+      headers: "{{ {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + wxt_bearer } }}"

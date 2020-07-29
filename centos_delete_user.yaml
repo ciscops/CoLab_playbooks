@@ -21,5 +21,3 @@
         message: "{{ message + ' - ' + inventory_hostname + ' Account Deletion Failed! \n' }}"
       when: login_server_user.failed == true
       ignore_errors: true
-    - name: Get message
-      debug: msg="{{ message }}"

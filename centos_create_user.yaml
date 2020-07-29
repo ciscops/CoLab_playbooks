@@ -17,8 +17,6 @@
         ssh_key_file: .ssh/id_rsa
       ignore_errors: true
       register: login_server_user
-    - name: Get hostname
-      debug: msg="{{ inventory_hostname }}"
     - name: Create Success message for Login Server
       set_fact:
         message: "{{ message + ' - ' + inventory_hostname + ' Account Created! \n' }}"
@@ -28,5 +26,3 @@
         message: "{{ message + ' - ' + inventory_hostname + ' Account Creation Failed! \n' }}"
       when: login_server_user.failed == true
       ignore_errors: true
-    - name: Get message
-      debug: msg="{{ message }}"
