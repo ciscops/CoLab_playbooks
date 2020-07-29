@@ -3,13 +3,13 @@
   gather_facts: no
   vars:
     cml_servers: "{{ cml_server_list }}"                          # From POST
-    iam_group: "{{ aws_iam_group }}"                              # From POST
     colab_email: "{{ colab_user_email }}"                         # From POST
     colab_username: "{{ colab_user_username }}"                   # From POST
     cml_admin_account: "{{ cml_admin_account }}"                  # From Vault
     cml_admin_password: "{{ cml_admin_password }}"                # From Vault
     aws_access_key: "{{ lookup('env','AWS_ACCESS_KEY_ID') }}"     # From Vault
     aws_secret_key: "{{ lookup('env','AWS_SECRET_ACCESS_KEY') }}" # From Vault
+    iam_group: "{{ aws_iam_group }}"                              # From Vault
     wxt_bearer: "{{ wxt_bearer }}"                                # From Vault
     cml_results: []
     check_flag: false
