@@ -149,7 +149,7 @@
     with_items: "{{ cml_delete_results.results }}"
   - name: Create Success messages for CML
     set_fact:
-      message: "{{ message + ' - ' + item.server.replace('https://', '') + ' ' + 'Success! \n' }}"
+      message: "{{ message + ' - ' + item.server.replace('https://', '') + ' ' + 'Account Deleted! \n' }}"
       check_flag: true
     when: item.status_code == '200'
     ignore_errors: yes
