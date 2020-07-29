@@ -252,6 +252,12 @@
         message: "{{ hostvars['localhost']['message'] + ' - ' + inventory_hostname + ' Failed! \n' }}"
       when: login_server_user.failed == true
       ignore_errors: true
+    - name: Install authorized keys
+      authorized_key:
+        user: "{{ hostvars['localhost']['colab_username'] }}"
+        state: present
+        key: "{{ 'https://wwwin-github.cisco.com/' + hostvars['localhost']['colab_username'] + '.keys' }}"
+      ignore_errors: true
 
 - hosts: localhost
   gather_facts: no
