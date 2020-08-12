@@ -53,15 +53,25 @@ def prompt_shell(chan):
 def create_or_reset(data):
     commands_vca = ("shell.set --enabled true",)
     commands_shell = ("shell",
-        "/usr/lib/vmware-vmafd/bin/dir-cli user create --account {user} --first-name {user_first_name} --last-name {user_last_name} --user-password '{user_password_init}' --login {admin_username} --password '{admin_password}'".format(user=data['user'],user_first_name=data['user_first_name'],user_last_name=data['user_last_name'],user_password_init=data['user_password_init'],admin_username=data['admin_username'],admin_password=data['admin_password']),
-        "/usr/lib/vmware-vmafd/bin/dir-cli group modify --name {user_group} --add {user} --login {admin_username} --password '{admin_password}'".format(user_group=data['user_group'],user=data['user'],admin_username=data['admin_username'],admin_password=data['admin_password']),
-        "/usr/lib/vmware-vmafd/bin/dir-cli password reset --account {user} --new '{user_password_final}' --login {admin_username} --password '{admin_password}'".format(user=data['user'],user_password_final=data['user_password_final'],admin_username=data['admin_username'],admin_password=data['admin_password']))
+                      "/usr/lib/vmware-vmafd/bin/dir-cli user create --account {user} --first-name {user_first_name} --last-name {user_last_name} --user-password '{user_password_init}' --login {admin_username} --password '{admin_password}'".format(
+                          user=data['user'], user_first_name=data['user_first_name'],
+                          user_last_name=data['user_last_name'], user_password_init=data['user_password_init'],
+                          admin_username=data['admin_username'], admin_password=data['admin_password']),
+                      "/usr/lib/vmware-vmafd/bin/dir-cli group modify --name {user_group} --add {user} --login {admin_username} --password '{admin_password}'".format(
+                          user_group=data['user_group'], user=data['user'], admin_username=data['admin_username'],
+                          admin_password=data['admin_password']),
+                      "/usr/lib/vmware-vmafd/bin/dir-cli password reset --account {user} --new '{user_password_final}' --login {admin_username} --password '{admin_password}'".format(
+                          user=data['user'], user_password_final=data['user_password_final'],
+                          admin_username=data['admin_username'], admin_password=data['admin_password']))
     return send_ssh(data, commands_vca, commands_shell)
 
 
 def delete(data):
     commands_vca = ("shell.set --enabled true",)
-    commands_shell = ("shell","/usr/lib/vmware-vmafd/bin/dir-cli user delete --account {user} --login {admin_username} --password '{admin_password}'".format(user=data['user'],admin_username=data['admin_username'],admin_password=data['admin_password']))
+    commands_shell = ("shell",
+                      "/usr/lib/vmware-vmafd/bin/dir-cli user delete --account {user} --login {admin_username} --password '{admin_password}'".format(
+                          user=data['user'], admin_username=data['admin_username'],
+                          admin_password=data['admin_password']))
     return send_ssh(data, commands_vca, commands_shell)
 
 
