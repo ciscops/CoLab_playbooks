@@ -15,7 +15,7 @@ EXAMPLES = '''
       user_last_name: "last"
       user_password_final: "finalhardpasswordtoguess"
       vcenter_user_group: "operators"
-      vcenter_vcenter_admin_username: "administrator"
+      vcenter_admin_username: "administrator"
       vcenter_admin_password: "adminpassword"
       vcenter_address: "vcenter.domain.com"
 
@@ -23,7 +23,7 @@ EXAMPLES = '''
     vcenter_user_admin:
       action: "delete"
       user: "user1"
-      vcenter_vcenter_admin_username: "administrator"
+      vcenter_admin_username: "administrator"
       vcenter_admin_password: "adminpassword"
       vcenter_address: "vcenter.domain.com"
 '''
@@ -53,10 +53,10 @@ def prompt_shell(chan):
 def create_or_reset(data):
     commands_vca = ("shell.set --enabled true",)
     commands_shell = ("shell",
-                      "/usr/lib/vmware-vmafd/bin/dir-cli user create --account {user} --first-name {user_first_name} --last-name {user_last_name} --user-password '{user_password_init}' --login {vcenter_vcenter_admin_username} --password '{vcenter_admin_password}'".format(
+                      "/usr/lib/vmware-vmafd/bin/dir-cli user create --account {user} --first-name {user_first_name} --last-name {user_last_name} --user-password '{user_password_init}' --login {vcenter_admin_username} --password '{vcenter_admin_password}'".format(
                           user=data['user'], user_first_name=data['user_first_name'],
                           user_last_name=data['user_last_name'], user_password_init=data['user_password_init'],
-                          vcenter_vcenter_admin_username=data['vcenter_vcenter_admin_username'], vcenter_admin_password=data['vcenter_admin_password']),
+                          vcenter_admin_username=data['vcenter_admin_username'], vcenter_admin_password=data['vcenter_admin_password']),
                       "/usr/lib/vmware-vmafd/bin/dir-cli group modify --name {vcenter_user_group} --add {user} --login {vcenter_admin_username} --password '{vcenter_admin_password}'".format(
                           vcenter_user_group=data['vcenter_user_group'], user=data['user'], vcenter_admin_username=data['vcenter_admin_username'],
                           vcenter_admin_password=data['vcenter_admin_password']),
