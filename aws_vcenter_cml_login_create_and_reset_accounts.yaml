@@ -290,12 +290,22 @@
     no_log: False
     register: vcenter_result
   - debug: var=vcenter_result
+  - name: Create Success message for vCenter
+    set_fact:
+      message: "{{ hostvars[groups['login'][0]].message + ' - ' + vcenter_address + ' Success! \n' }}"
+    when: vcenter_result.changed == true
+    ignore_errors: true
+  - name: Create Fail message for vCenter
+    set_fact:
+      message: "{{ hostvars['localhost']['message'] + ' - ' + vcenter_address + ' Failed! \n' }}"
+    when: vcenter_result.changed == false
+    ignore_errors: true
   - name: Send WxT Message
     uri:
       url: "https://api.ciscospark.com/v1/messages"
       method: POST
       return_content: yes
-      body: "{{ {'toPersonEmail': colab_email, 'markdown': hostvars[groups['login'][0]].message } | to_json }}"
+      body: "{{ {'toPersonEmail': colab_email, 'markdown': message } | to_json }}"
       validate_certs: no
       headers: "{{ {
         'Content-Type': 'application/json',
