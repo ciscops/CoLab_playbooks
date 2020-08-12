@@ -226,7 +226,7 @@
     ignore_errors: true
   - name: Create Fail message for vCenter
     set_fact:
-      message: "{{ hostvars['localhost']['message'] + ' - ' + vcenter_address + ' Failed! \n' }}"
+      message: "{{ hostvars[groups['login'][0]].message + ' - ' + vcenter_address + ' Failed! \n' }}"
     when: vcenter_result.failed == true or vcenter_result.changed == false
     ignore_errors: true
   - name: Send WxT Message
