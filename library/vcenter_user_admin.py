@@ -98,13 +98,14 @@ def send_ssh(data, commands_vca, commands_shell):
             output = prompt_shell(ssh)
             print(output)
 
-        if 'Password was reset successfully' in output:
+        if 'successfully' in output:
             status['msg'] = 'Success'
             changed = True
         elif 'ERROR' in output:
             ind = output.index('ERROR')
             msg = output[ind:]
             status['msg'] = msg
+            error = True
         else:
             status['msg'] = 'Failed'
         ssh.close()
@@ -119,8 +120,8 @@ def main():
     fields = {
         "user": {"required": True, "type": "str"},
         "user_password_init": {"required": False, "type": "str"},
-        "user_first_name": {"default": False, "type": "str"},
-        "user_last_name": {"default": False, "type": "str"},
+        "user_first_name": {"default": "", "type": "str"},
+        "user_last_name": {"default": "", "type": "str"},
         "user_password_final": {"required": False, "type": "str"},
         "vcenter_user_group": {"required": False, "type": "str"},
         "vcenter_admin_username": {"required": True, "type": "str"},
