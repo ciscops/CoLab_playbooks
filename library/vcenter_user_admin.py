@@ -120,8 +120,8 @@ def main():
     fields = {
         "user": {"required": True, "type": "str"},
         "user_password_init": {"required": False, "type": "str"},
-        "user_first_name": {"default": "", "type": "str"},
-        "user_last_name": {"default": "", "type": "str"},
+        "user_first_name": {"required": False, "type": "str"},
+        "user_last_name": {"required": False, "type": "str"},
         "user_password_final": {"required": False, "type": "str"},
         "vcenter_user_group": {"required": False, "type": "str"},
         "vcenter_admin_username": {"required": True, "type": "str"},
