@@ -1,0 +1,13 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+  - name: Add Delete user from vCenter
+    vcenter_user_admin:
+      user: "{{ colab_user_username }}"
+      admin_username: "{{ vcenter_admin_account }}"
+      admin_password: "{{ vcenter_admin_password }}"
+      vcenter_address: "{{ vcenter_address }}"
+      action: "delete"
+    no_log: True
