@@ -202,7 +202,7 @@
     - name: Delete Fail message for Login Server
       set_fact:
         message: "{{ hostvars['localhost']['message'] + ' - ' + inventory_hostname + ' Account Deletion Failed! \n' }}"
-      when: login_server_user.failed == true
+      when: login_server_user.failed == true or login_server_user.changed == false
       ignore_errors: true
 
 - hosts: localhost
