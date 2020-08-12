@@ -11,8 +11,6 @@ EXAMPLES = '''
       action: "create_or_reset"
       user: "user1"
       user_password_init: "hardpasswordtoguess"
-      user_first_name: "first"
-      user_last_name: "last"
       user_password_final: "finalhardpasswordtoguess"
       vcenter_user_group: "operators"
       vcenter_admin_username: "administrator"
@@ -120,8 +118,6 @@ def main():
     fields = {
         "user": {"required": True, "type": "str"},
         "user_password_init": {"required": False, "type": "str"},
-        # "user_first_name": {"required": False, "type": "str"},
-        # "user_last_name": {"required": False, "type": "str"},
         "user_password_final": {"required": False, "type": "str"},
         "vcenter_user_group": {"required": False, "type": "str"},
         "vcenter_admin_username": {"required": True, "type": "str"},
