@@ -10,4 +10,4 @@
       admin_password: "{{ vcenter_admin_password }}"
       vcenter_address: "{{ vcenter_address }}"
       action: "delete"
-    no_log: True
+    no_log: False
