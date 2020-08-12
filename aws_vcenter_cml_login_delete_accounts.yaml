@@ -197,7 +197,7 @@
     - name: Delete Success message for Login Server
       set_fact:
         message: "{{ hostvars['localhost']['message'] + ' - ' + inventory_hostname + ' Account Deleted! \n' }}"
-      when: login_server_user.changed == true and login_server_user.failed == false
+      when: login_server_user.changed == true
       ignore_errors: true
     - name: Delete Fail message for Login Server
       set_fact:
