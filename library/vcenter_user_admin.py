@@ -14,17 +14,17 @@ EXAMPLES = '''
       user_first_name: "first"
       user_last_name: "last"
       user_password_final: "finalhardpasswordtoguess"
-      user_group: "operators"
-      admin_username: "administrator"
-      admin_password: "adminpassword"
+      vcenter_user_group: "operators"
+      vcenter_vcenter_admin_username: "administrator"
+      vcenter_admin_password: "adminpassword"
       vcenter_address: "vcenter.domain.com"
 
 - name: Delete user vCenter 6.7
     vcenter_user_admin:
       action: "delete"
       user: "user1"
-      admin_username: "administrator"
-      admin_password: "adminpassword"
+      vcenter_vcenter_admin_username: "administrator"
+      vcenter_admin_password: "adminpassword"
       vcenter_address: "vcenter.domain.com"
 '''
 from ansible.module_utils.basic import *
@@ -53,25 +53,25 @@ def prompt_shell(chan):
 def create_or_reset(data):
     commands_vca = ("shell.set --enabled true",)
     commands_shell = ("shell",
-                      "/usr/lib/vmware-vmafd/bin/dir-cli user create --account {user} --first-name {user_first_name} --last-name {user_last_name} --user-password '{user_password_init}' --login {admin_username} --password '{admin_password}'".format(
+                      "/usr/lib/vmware-vmafd/bin/dir-cli user create --account {user} --first-name {user_first_name} --last-name {user_last_name} --user-password '{user_password_init}' --login {vcenter_vcenter_admin_username} --password '{vcenter_admin_password}'".format(
                           user=data['user'], user_first_name=data['user_first_name'],
                           user_last_name=data['user_last_name'], user_password_init=data['user_password_init'],
-                          admin_username=data['admin_username'], admin_password=data['admin_password']),
-                      "/usr/lib/vmware-vmafd/bin/dir-cli group modify --name {user_group} --add {user} --login {admin_username} --password '{admin_password}'".format(
-                          user_group=data['user_group'], user=data['user'], admin_username=data['admin_username'],
-                          admin_password=data['admin_password']),
-                      "/usr/lib/vmware-vmafd/bin/dir-cli password reset --account {user} --new '{user_password_final}' --login {admin_username} --password '{admin_password}'".format(
+                          vcenter_vcenter_admin_username=data['vcenter_vcenter_admin_username'], vcenter_admin_password=data['vcenter_admin_password']),
+                      "/usr/lib/vmware-vmafd/bin/dir-cli group modify --name {vcenter_user_group} --add {user} --login {vcenter_admin_username} --password '{vcenter_admin_password}'".format(
+                          vcenter_user_group=data['vcenter_user_group'], user=data['user'], vcenter_admin_username=data['vcenter_admin_username'],
+                          vcenter_admin_password=data['vcenter_admin_password']),
+                      "/usr/lib/vmware-vmafd/bin/dir-cli password reset --account {user} --new '{user_password_final}' --login {vcenter_admin_username} --password '{vcenter_admin_password}'".format(
                           user=data['user'], user_password_final=data['user_password_final'],
-                          admin_username=data['admin_username'], admin_password=data['admin_password']))
+                          vcenter_admin_username=data['vcenter_admin_username'], vcenter_admin_password=data['vcenter_admin_password']))
     return send_ssh(data, commands_vca, commands_shell)
 
 
 def delete(data):
     commands_vca = ("shell.set --enabled true",)
     commands_shell = ("shell",
-                      "/usr/lib/vmware-vmafd/bin/dir-cli user delete --account {user} --login {admin_username} --password '{admin_password}'".format(
-                          user=data['user'], admin_username=data['admin_username'],
-                          admin_password=data['admin_password']))
+                      "/usr/lib/vmware-vmafd/bin/dir-cli user delete --account {user} --login {vcenter_admin_username} --password '{vcenter_admin_password}'".format(
+                          user=data['user'], vcenter_admin_username=data['vcenter_admin_username'],
+                          vcenter_admin_password=data['vcenter_admin_password']))
     return send_ssh(data, commands_vca, commands_shell)
 
 
@@ -83,7 +83,7 @@ def send_ssh(data, commands_vca, commands_shell):
     try:
         c = paramiko.SSHClient()
         c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        c.connect(data['vcenter_address'], username=data['admin_username'], password=data['admin_password'],
+        c.connect(data['vcenter_address'], username=data['vcenter_admin_username'], password=data['vcenter_admin_password'],
                   timeout=5.0)
         time.sleep(0.5)
         ssh = c.invoke_shell()
@@ -122,9 +122,9 @@ def main():
         "user_first_name": {"default": "unk", "type": "str"},
         "user_last_name": {"default": "unk", "type": "str"},
         "user_password_final": {"required": False, "type": "str"},
-        "user_group": {"required": False, "type": "str"},
-        "admin_username": {"required": True, "type": "str"},
-        "admin_password": {"required": True, "type": "str"},
+        "vcenter_user_group": {"required": False, "type": "str"},
+        "vcenter_vcenter_admin_username": {"required": True, "type": "str"},
+        "vcenter_admin_password": {"required": True, "type": "str"},
         "vcenter_address": {"required": True, "type": "str"},
         "action": {"required": True, "type": "str"}
     }
