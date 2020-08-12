@@ -123,7 +123,7 @@ def main():
         "user_last_name": {"default": "unk", "type": "str"},
         "user_password_final": {"required": False, "type": "str"},
         "vcenter_user_group": {"required": False, "type": "str"},
-        "vcenter_vcenter_admin_username": {"required": True, "type": "str"},
+        "vcenter_admin_username": {"required": True, "type": "str"},
         "vcenter_admin_password": {"required": True, "type": "str"},
         "vcenter_address": {"required": True, "type": "str"},
         "action": {"required": True, "type": "str"}
