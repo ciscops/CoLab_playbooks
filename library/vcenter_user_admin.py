@@ -106,6 +106,7 @@ def send_ssh(data, commands_vca, commands_shell):
             error = True
         else:
             status['msg'] = 'Failed'
+            error = True
         ssh.close()
     except Exception as e:
         print(e)

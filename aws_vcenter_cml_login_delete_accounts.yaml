@@ -218,11 +218,10 @@
       action: "delete"
     no_log: False
     register: vcenter_result
-  - debug: var=vcenter_result
   - name: Create Success message for vCenter
     set_fact:
       message: "{{ hostvars[groups['login'][0]].message + ' - ' + vcenter_address + ' Success! \n' }}"
-    when: vcenter_result.failed == false and vcenter_result.changed == true
+    when: vcenter_result.changed == true
     ignore_errors: true
   - name: Create Fail message for vCenter
     set_fact:
