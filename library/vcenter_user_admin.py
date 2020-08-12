@@ -54,8 +54,8 @@ def create_or_reset(data):
     commands_vca = ("shell.set --enabled true",)
     commands_shell = ("shell",
                       "/usr/lib/vmware-vmafd/bin/dir-cli user create --account {user} --first-name {user_first_name} --last-name {user_last_name} --user-password '{user_password_init}' --login {vcenter_admin_username} --password '{vcenter_admin_password}'".format(
-                          user=data['user'], user_first_name=data.get('user_first_name', 'unk'),
-                          user_last_name=data.get('user_last_name', data['user']), user_password_init=data['user_password_init'],
+                          user=data['user'], user_first_name=data.get('user_first_name'),
+                          user_last_name=data.get('user'), user_password_init=data['user_password_init'],
                           vcenter_admin_username=data['vcenter_admin_username'], vcenter_admin_password=data['vcenter_admin_password']),
                       "/usr/lib/vmware-vmafd/bin/dir-cli group modify --name {vcenter_user_group} --add {user} --login {vcenter_admin_username} --password '{vcenter_admin_password}'".format(
                           vcenter_user_group=data['vcenter_user_group'], user=data['user'], vcenter_admin_username=data['vcenter_admin_username'],
@@ -120,8 +120,8 @@ def main():
     fields = {
         "user": {"required": True, "type": "str"},
         "user_password_init": {"required": False, "type": "str"},
-        "user_first_name": {"required": False, "type": "str"},
-        "user_last_name": {"required": False, "type": "str"},
+        # "user_first_name": {"required": False, "type": "str"},
+        # "user_last_name": {"required": False, "type": "str"},
         "user_password_final": {"required": False, "type": "str"},
         "vcenter_user_group": {"required": False, "type": "str"},
         "vcenter_admin_username": {"required": True, "type": "str"},
