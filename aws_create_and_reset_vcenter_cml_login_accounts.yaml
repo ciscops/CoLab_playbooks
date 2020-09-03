@@ -99,36 +99,36 @@
   - name: Save shuffled output
     set_fact:
       colab_user_password_final: "{{ final_shuffled.stdout }}"
-#  - name: Create AWS Account
-#    iam:
-#      iam_type: user
-#      name: "{{ colab_username }}"
-#      state: present
-#      aws_access_key: "{{ aws_access_key }}"
-#      aws_secret_key: "{{ aws_secret_key }}"
-#      password: "{{ colab_user_password_init }}"
-#      access_key_state: create
-#      groups: "{{ iam_group }}"
-#      update_password: on_create
-#    register: iam_user
-#    ignore_errors: true
-#  - name: Get AWS Account number
-#    set_fact:
-#      aws_account_number: "{{ iam_user.user_meta.created_user.arn.replace('arn:aws:iam::', '').replace(':user/' + colab_username, '') }}"
-#      successful_aws_creation: true
-#    when: iam_user.failed == false
-#    ignore_errors: true
-#  - name: Create Success message for AWS
-#    set_fact:
-#      message: "{{ message + ' - https://' + aws_account_number + '.signin.aws.amazon.com/console ' + 'Success! \n' }}"
-#      check_flag: true
-#    ignore_errors: true
-#    when: iam_user.failed == false
-#  - name: Set Account Creation Failed but reset potential flag
-#    set_fact:
-#      aws_potential_reset_flag: true
-#    when: iam_user.failed == true
-#    ignore_errors: true
+  - name: Create AWS Account
+    iam:
+      iam_type: user
+      name: "{{ colab_username }}"
+      state: present
+      aws_access_key: "{{ aws_access_key }}"
+      aws_secret_key: "{{ aws_secret_key }}"
+      password: "{{ colab_user_password_init }}"
+      access_key_state: create
+      groups: "{{ iam_group }}"
+      update_password: on_create
+    register: iam_user
+    ignore_errors: true
+  - name: Get AWS Account number
+    set_fact:
+      aws_account_number: "{{ iam_user.user_meta.created_user.arn.replace('arn:aws:iam::', '').replace(':user/' + colab_username, '') }}"
+      successful_aws_creation: true
+    when: iam_user.failed == false
+    ignore_errors: true
+  - name: Create Success message for AWS
+    set_fact:
+      message: "{{ message + ' - https://' + aws_account_number + '.signin.aws.amazon.com/console ' + 'Success! \n' }}"
+      check_flag: true
+    ignore_errors: true
+    when: iam_user.failed == false
+  - name: Set Account Creation Failed but reset potential flag
+    set_fact:
+      aws_potential_reset_flag: true
+    when: iam_user.failed == true
+    ignore_errors: true
   - name: Get CML Tokens
     uri:
       url: "{{ item + api_cml_authenticate }}"
@@ -162,8 +162,8 @@
     register: create_results
     ignore_errors: yes
     with_items: "{{ token_results.results }}"
-#  - pause:  # Pause to allows time for AWS account creation completion
-#      seconds: 20
+  - pause:  # Pause to allows time for AWS account creation completion
+      seconds: 20
   - name: Reset CML Passwords
     uri:
       url: "{{ item.item + '/api/v0/users/' + colab_username + '/change_password' }}"
@@ -219,11 +219,11 @@
       update_password: always
     register: iam_user_reset
     ignore_errors: true
-#  - name: Create Fail message for AWS
-#    set_fact:
-#      message: "{{ message + ' - ' + 'aws.amazon.com Failed: ' + iam_user_reset.msg + ' \n' }}"
-#    when: iam_user_reset.failed == true
-#    ignore_errors: true
+  - name: Create Fail message for AWS
+    set_fact:
+      message: "{{ message + ' - ' + 'aws.amazon.com Failed: ' + iam_user_reset.msg + ' \n' }}"
+    when: iam_user_reset.failed == true
+    ignore_errors: true
   - name: Create Reset Success message for AWS
     set_fact:
       message: "{{ message + ' - ' + 'aws.amazon.com Success: \n' }}"
