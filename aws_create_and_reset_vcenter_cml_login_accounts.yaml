@@ -25,28 +25,28 @@
   tasks:
   - name: Generate initial password uppercase letters
     shell:
-      cmd: tr -d -c 'A-Z' < /dev/urandom | head -c 5
+      cmd: tr -d -c 'A-Z' < /dev/urandom | head -c 7
     register: initial_upper
   - name: Set initial upper password numbers
     set_fact:
       colab_user_password_upper_init: "{{ initial_upper.stdout }}"
   - name: Generate initial password lowercase letters
     shell:
-      cmd: tr -d -c 'Aa-z' < /dev/urandom | head -c 5
+      cmd: tr -d -c 'Aa-z' < /dev/urandom | head -c 7
     register: initial_lower
   - name: Set initial password lowercase letters
     set_fact:
       colab_user_password_lower_init: "{{ initial_lower.stdout }}"
   - name: Generate initial password numbers
     shell:
-      cmd: tr -d -c '0-9' < /dev/urandom | head -c 5
+      cmd: tr -d -c '0-9' < /dev/urandom | head -c 3
     register: initial_numbers
   - name: Set initial password numbers
     set_fact:
       colab_user_password_numbers_init: "{{ initial_numbers.stdout }}"
   - name: Generate initial password symbols
     shell:
-      cmd: tr -d -c '_+-=[})^' < /dev/urandom | head -c 5
+      cmd: tr -d -c '_+-=[})^' < /dev/urandom | head -c 3
     register: init_symbols
   - name: Set initial password symbols
     set_fact:
@@ -63,28 +63,28 @@
       colab_user_password_init: "{{ init_shuffled.stdout }}"
   - name: Generate final password uppercase letters
     shell:
-      cmd: tr -d -c 'A-Z' < /dev/urandom | head -c 5
+      cmd: tr -d -c 'A-Z' < /dev/urandom | head -c 7
     register: final_upper
   - name: Set final upper password numbers
     set_fact:
       colab_user_password_upper_final: "{{ final_upper.stdout }}"
   - name: Generate final password lowercase letters
     shell:
-      cmd: tr -d -c 'Aa-z' < /dev/urandom | head -c 5
+      cmd: tr -d -c 'Aa-z' < /dev/urandom | head -c 7
     register: final_lower
   - name: Set final password lowercase letters
     set_fact:
       colab_user_password_lower_final: "{{ final_lower.stdout }}"
   - name: Generate final password numbers
     shell:
-      cmd: tr -d -c '0-9' < /dev/urandom | head -c 5
+      cmd: tr -d -c '0-9' < /dev/urandom | head -c 3
     register: final_numbers
   - name: Set final password numbers
     set_fact:
       colab_user_password_numbers_final: "{{ final_numbers.stdout }}"
   - name: Generate final password symbols
     shell:
-      cmd: tr -d -c '_+-=[})^' < /dev/urandom | head -c 5
+      cmd: tr -d -c '_+-=[})^' < /dev/urandom | head -c 3
     register: final_symbols
   - name: Set final password symbols
     set_fact:
@@ -120,7 +120,7 @@
     ignore_errors: true
   - name: Create Success message for AWS
     set_fact:
-      message: "{{ message + ' - https://' + aws_account_number + '.signin.aws.amazon.com/console ' + 'Success! \n' }}"
+      message: "{{ ' - AWS username is ' + colab_user_username + '\n' + '    - https://' + aws_account_number + '.signin.aws.amazon.com/console ' + 'Success! \n' }}"
       check_flag: true
     ignore_errors: true
     when: iam_user.failed == false
@@ -163,7 +163,7 @@
     ignore_errors: yes
     with_items: "{{ token_results.results }}"
   - pause:  # Pause to allows time for AWS account creation completion
-      seconds: 20
+      seconds: 15
   - name: Reset CML Passwords
     uri:
       url: "{{ item.item + '/api/v0/users/' + colab_username + '/change_password' }}"
@@ -197,15 +197,18 @@
     when: item.get('failed') == false
     ignore_errors: yes
     with_items: "{{ create_results.results }}"
+  - name: Generate CML Message Header
+    set_fact:
+      message: "{{ ' - CML username is ' + colab_user_username + '\n' }}"
   - name: Create Success messages for CML
     set_fact:
-      message: "{{ message + ' - ' + item.server.replace('https://', '') + ' ' + 'Success! \n' }}"
+      message: "{{ message + '    - ' + item.server.replace('https://', '') + ' ' + 'Success! \n' }}"
       check_flag: true
     when: item.status_code == '200'
     with_items: "{{ cml_results }}"
   - name: Create Fail messages for CML
     set_fact:
-      message: "{{ message + ' - ' + item.server.replace('https://', '') + ' ' + 'Failed: ' + item.status_code + ' \n' }}"
+      message: "{{ message + '    - ' + item.server.replace('https://', '') + ' ' + 'Failed: ' + item.status_code + ' \n' }}"
     when: item.status_code != '200'
     with_items: "{{ cml_results }}"
   - name: Reset AWS Account Password
@@ -221,12 +224,12 @@
     ignore_errors: true
   - name: Create Fail message for AWS
     set_fact:
-      message: "{{ message + ' - ' + 'aws.amazon.com Failed: ' + iam_user_reset.msg + ' \n' }}"
+      message: "{{ message + ' - AWS username is ' + colab_user_username + '\n' + '    - ' + 'aws.amazon.com Failed: ' + iam_user_reset.msg + ' \n' }}"
     when: iam_user_reset.failed == true
     ignore_errors: true
   - name: Create Reset Success message for AWS
     set_fact:
-      message: "{{ message + ' - ' + 'aws.amazon.com Success: \n' }}"
+      message: "{{ message + ' - AWS username is ' + colab_user_username + '\n' + '    - ' + 'aws.amazon.com Success: \n' }}"
     when: iam_user_reset.failed == false and successful_aws_creation == false
     ignore_errors: true
 
@@ -248,12 +251,12 @@
       register: login_server_user
     - name: Create Success message for Login Server
       set_fact:
-        message: "{{ hostvars['localhost']['message'] + ' - ' + inventory_hostname + ' Success! \n' }}"
+        message: "{{ hostvars['localhost']['message'] + ' - Centos Login Server username is ' + colab_user_username + '\n' + '    - ' + inventory_hostname + ' Success! \n' }}"
       when: login_server_user.changed == true and login_server_user.failed == false
       ignore_errors: true
     - name: Create Fail message for Login Server
       set_fact:
-        message: "{{ hostvars['localhost']['message'] + ' - ' + inventory_hostname + ' Failed! \n' }}"
+        message: "{{ hostvars['localhost']['message'] + ' - Centos Login Server username is ' + colab_user_username + '\n' + '    - ' + inventory_hostname + ' Failed! \n' }}"
       when: login_server_user.failed == true
       ignore_errors: true
 
@@ -272,7 +275,8 @@
       vcenter_address: "{{ vcenter_address }}"
       action: "create_or_reset"
     no_log: False
-
+  - pause:
+      seconds: 5
 - hosts: localhost
   connection: local
   gather_facts: no
@@ -289,14 +293,15 @@
       action: "create_or_reset"
     no_log: False
     register: vcenter_result
+    ignore_errors: True
   - name: Create Success message for vCenter
     set_fact:
-      message: "{{ hostvars[groups['login'][0]].message + ' - ' + vcenter_address + ' Success! \n' }}"
+      message: "{{ hostvars[groups['login'][0]].message + ' - HX VMware username is ' + colab_user_username + '@ciscops.net\n' + '    -    ' + vcenter_address + ' Success! \n' }}"
     when: vcenter_result.changed == true
     ignore_errors: true
   - name: Create Fail message for vCenter
     set_fact:
-      message: "{{ hostvars['localhost']['message'] + ' - ' + vcenter_address + ' Failed! \n' }}"
+      message: "{{ hostvars['localhost']['message'] + ' - HX VMware username is ' + colab_user_username + '@ciscops.net\n' + '    -    ' + vcenter_address + ' Failed! \n' }}"
     when: vcenter_result.changed == false
     ignore_errors: true
   - name: Send WxT Message
