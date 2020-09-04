@@ -192,7 +192,7 @@
     ignore_errors: true
   - name: Create Reset Success message for AWS
     set_fact:
-      message: "{{ message + '\nAWS Account:\n' + ' - ' + 'aws.amazon.com Success: \n' }}"
+      message: "{{ message + ' - AWS Account:\n' + '    - ' + 'aws.amazon.com Success: \n' }}"
     when: iam_user_reset.failed == false and successful_aws_creation == false
     ignore_errors: true
 
@@ -214,12 +214,12 @@
       register: login_server_user
     - name: Create Success message for Login Server
       set_fact:
-        message: "{{ hostvars['localhost']['message'] + '\nCentos Login Server:\n' + ' - ' + inventory_hostname + ' Success! \n' }}"
+        message: "{{ hostvars['localhost']['message'] + ' - Centos Login Server:\n' + '    - ' + inventory_hostname + ' Success! \n' }}"
       when: login_server_user.changed == true and login_server_user.failed == false
       ignore_errors: true
     - name: Create Fail message for Login Server
       set_fact:
-        message: "{{ hostvars['localhost']['message'] + '\nCentos Login Server:\n' + ' - ' + inventory_hostname + ' Failed! \n' }}"
+        message: "{{ hostvars['localhost']['message'] + ' - Centos Login Server:\n' + '    - ' + inventory_hostname + ' Failed! \n' }}"
       when: login_server_user.failed == true
       ignore_errors: true
 
