@@ -199,7 +199,7 @@
     with_items: "{{ create_results.results }}"
   - name: Generate CML Message Header
     set_fact:
-      message: "{{ ' - CML username is ' + colab_user_username + '\n' }}"
+      message: "{{ message + ' - CML username is ' + colab_user_username + '\n' }}"
   - name: Create Success messages for CML
     set_fact:
       message: "{{ message + '    - ' + item.server.replace('https://', '') + ' ' + 'Success! \n' }}"
