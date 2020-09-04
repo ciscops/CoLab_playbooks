@@ -235,7 +235,8 @@
       vcenter_address: "{{ vcenter_address }}"
       action: "create_or_reset"
     no_log: False
-
+  - pause:
+      seconds: 5
 - hosts: localhost
   connection: local
   gather_facts: no
@@ -252,6 +253,7 @@
       action: "create_or_reset"
     no_log: False
     register: vcenter_result
+    ignore_errors: True
   - name: Create Success message for vCenter
     set_fact:
       message: "{{ hostvars[groups['login'][0]].message + '\nHX VMware account(use $USERNAME@ciscops.net):\n' + ' - ' + vcenter_address + ' Success! \n' }}"
