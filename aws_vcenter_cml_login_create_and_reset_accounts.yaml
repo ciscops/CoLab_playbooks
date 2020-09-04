@@ -192,7 +192,7 @@
     ignore_errors: true
   - name: Create Reset Success message for AWS
     set_fact:
-      message: "{{ message + ' - AWS username ' + colab_username + '\n' + '    - ' + 'aws.amazon.com Success: \n' }}"
+      message: "{{ message + ' - AWS username ' + colab_username + '\n' + '    - ' + 'aws.amazon.com Success!\n' }}"
     when: iam_user_reset.failed == false and successful_aws_creation == false
     ignore_errors: true
 
