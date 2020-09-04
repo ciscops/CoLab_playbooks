@@ -165,15 +165,18 @@
     when: item.get('failed') == false
     ignore_errors: yes
     with_items: "{{ create_results.results }}"
+  - name: Generate CML Message Header
+    set_fact:
+      message: "{{ ' - CML username is: ' + colab_user_username + '\n' }}"
   - name: Create Success messages for CML
     set_fact:
-      message: "{{ 'CML servers:\n' + ' - ' + item.server.replace('https://', '') + ' ' + 'Success! \n' }}"
+      message: "{{ message + '    - ' + item.server.replace('https://', '') + ' ' + 'Success! \n' }}"
       check_flag: true
     when: item.status_code == '200'
     with_items: "{{ cml_results }}"
   - name: Create Fail messages for CML
     set_fact:
-      message: "{{ 'CML server accounts:\n' + ' - ' + item.server.replace('https://', '') + ' ' + 'Failed: ' + item.status_code + ' \n' }}"
+      message: "{{ message + '    - ' + item.server.replace('https://', '') + ' ' + 'Failed: ' + item.status_code + ' \n' }}"
     when: item.status_code != '200'
     with_items: "{{ cml_results }}"
   - name: Reset AWS Account Password
