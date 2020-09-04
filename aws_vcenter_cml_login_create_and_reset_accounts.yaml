@@ -32,7 +32,7 @@
       colab_user_password_upper_init: "{{ initial_upper.stdout }}"
   - name: Generate initial password lowercase letters
     shell:
-      cmd: tr -d -c 'Aa-z' < /dev/urandom | head -c 7
+      cmd: tr -d -c 'a-z' < /dev/urandom | head -c 7
     register: initial_lower
   - name: Set initial password lowercase letters
     set_fact:
@@ -46,7 +46,7 @@
       colab_user_password_numbers_init: "{{ initial_numbers.stdout }}"
   - name: Generate initial password symbols
     shell:
-      cmd: tr -d -c '_+-=[})^' < /dev/urandom | head -c 3
+      cmd: tr -d -c '_[})^' < /dev/urandom | head -c 3
     register: init_symbols
   - name: Set initial password symbols
     set_fact:
@@ -70,7 +70,7 @@
       colab_user_password_upper_final: "{{ final_upper.stdout }}"
   - name: Generate final password lowercase letters
     shell:
-      cmd: tr -d -c 'Aa-z' < /dev/urandom | head -c 7
+      cmd: tr -d -c 'a-z' < /dev/urandom | head -c 7
     register: final_lower
   - name: Set final password lowercase letters
     set_fact:
@@ -84,7 +84,7 @@
       colab_user_password_numbers_final: "{{ final_numbers.stdout }}"
   - name: Generate final password symbols
     shell:
-      cmd: tr -d -c '_+-=[})^' < /dev/urandom | head -c 3
+      cmd: tr -d -c '_[})^' < /dev/urandom | head -c 3
     register: final_symbols
   - name: Set final password symbols
     set_fact:
@@ -238,6 +238,7 @@
       vcenter_address: "{{ vcenter_address }}"
       action: "create_or_reset"
     no_log: False
+    ignore_errors: True
   - pause:
       seconds: 5
 - hosts: localhost

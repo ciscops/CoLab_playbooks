@@ -150,16 +150,19 @@
       cml_results: "{{ cml_results + temp_list }}"
     ignore_errors: yes
     with_items: "{{ cml_delete_results.results }}"
+  - name: Generate CML Message Header
+    set_fact:
+      message: "{{ ' - CML\n' }}"
   - name: Create Success messages for CML
     set_fact:
-      message: "{{ message + ' - ' + item.server.replace('https://', '') + ' ' + 'Account Deleted! \n' }}"
+      message: "{{ message + '    - ' + item.server.replace('https://', '') + ' ' + 'Account Deleted! \n' }}"
       check_flag: true
     when: item.status_code == '200'
     ignore_errors: yes
     with_items: "{{ cml_results }}"
   - name: Create Fail messages for CML
     set_fact:
-      message: "{{ message + ' - ' + item.server.replace('https://', '') + ' ' + 'Failed: ' + item.status_code + ' \n' }}"
+      message: "{{ message + '    - ' + item.server.replace('https://', '') + ' ' + 'Failed: ' + item.status_code + ' \n' }}"
     ignore_errors: yes
     when: item.status_code != '200'
     with_items: "{{ cml_results }}"
@@ -174,12 +177,12 @@
     ignore_errors: true
   - name: Create Success message for AWS
     set_fact:
-      message: "{{ message + ' - ' + 'AWS Account Deleted! \n' }}"
+      message: "{{ message + ' - AWS\n' + '    - ' + 'AWS Account Deleted! \n' }}"
       check_flag: true
     when: iam_user.changed == true and iam_user.failed == false # and did't fail
   - name: Create Fail messages for AWS
     set_fact:
-      message: "{{ message + ' - ' + 'AWS Account Deletion Failed: ' + iam_user.msg + ' \n' }}"
+      message: "{{ message + ' - AWS\n' + '    - ' + 'AWS Account Deletion Failed: ' + iam_user.msg + ' \n' }}"
     when: iam_user.changed == false or iam_user.failed == false
     ignore_errors: true
 
@@ -196,12 +199,12 @@
       register: login_server_user
     - name: Delete Success message for Login Server
       set_fact:
-        message: "{{ hostvars['localhost']['message'] + ' - ' + inventory_hostname + ' Account Deleted! \n' }}"
+        message: "{{ hostvars['localhost']['message'] + ' - Centos Login Server\n' + '    - ' + inventory_hostname + ' Account Deleted! \n' }}"
       when: login_server_user.changed == true
       ignore_errors: true
     - name: Delete Fail message for Login Server
       set_fact:
-        message: "{{ hostvars['localhost']['message'] + ' - ' + inventory_hostname + ' Account Deletion Failed! \n' }}"
+        message: "{{ hostvars['localhost']['message'] + ' - Centos Login Server\n' + '    - ' + inventory_hostname + ' Account Deletion Failed! \n' }}"
       when: login_server_user.failed == true or login_server_user.changed == false
       ignore_errors: true
 
@@ -220,12 +223,12 @@
     register: vcenter_result
   - name: Create Success message for vCenter
     set_fact:
-      message: "{{ hostvars[groups['login'][0]].message + ' - ' + vcenter_address + ' Account Deleted! \n' }}"
+      message: "{{ hostvars[groups['login'][0]].message + ' - HX VMware\n' + '    - ' + vcenter_address + ' Account Deleted! \n' }}"
     when: vcenter_result.changed == true
     ignore_errors: true
   - name: Create Fail message for vCenter
     set_fact:
-      message: "{{ hostvars[groups['login'][0]].message + ' - ' + vcenter_address + ' Failed! \n' }}"
+      message: "{{ hostvars[groups['login'][0]].message + ' - HX VMware\n' + '    - ' + vcenter_address + ' Failed! \n' }}"
     when: vcenter_result.failed == true or vcenter_result.changed == false
     ignore_errors: true
   - name: Send WxT Message
