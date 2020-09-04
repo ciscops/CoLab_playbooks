@@ -167,7 +167,7 @@
     with_items: "{{ create_results.results }}"
   - name: Generate CML Message Header
     set_fact:
-      message: "{{ ' - CML username is: ' + colab_user_username + '\n' }}"
+      message: "{{ ' - CML username is ' + colab_user_username + '\n' }}"
   - name: Create Success messages for CML
     set_fact:
       message: "{{ message + '    - ' + item.server.replace('https://', '') + ' ' + 'Success! \n' }}"
@@ -214,12 +214,12 @@
       register: login_server_user
     - name: Create Success message for Login Server
       set_fact:
-        message: "{{ hostvars['localhost']['message'] + ' - Centos Login Server:\n' + '    - ' + inventory_hostname + ' Success! \n' }}"
+        message: "{{ hostvars['localhost']['message'] + ' - Centos Login Server username is ' + colab_user_username + '\n' + '    - ' + inventory_hostname + ' Success! \n' }}"
       when: login_server_user.changed == true and login_server_user.failed == false
       ignore_errors: true
     - name: Create Fail message for Login Server
       set_fact:
-        message: "{{ hostvars['localhost']['message'] + ' - Centos Login Server:\n' + '    - ' + inventory_hostname + ' Failed! \n' }}"
+        message: "{{ hostvars['localhost']['message'] + ' - Centos Login Server username is ' + colab_user_username + '\n' + '    - ' + inventory_hostname + ' Failed! \n' }}"
       when: login_server_user.failed == true
       ignore_errors: true
 
@@ -259,12 +259,12 @@
     ignore_errors: True
   - name: Create Success message for vCenter
     set_fact:
-      message: "{{ hostvars[groups['login'][0]].message + ' - HX VMware account(use ' + colab_user_username + '@ciscops.net):\n' + ' -    ' + vcenter_address + ' Success! \n' }}"
+      message: "{{ hostvars[groups['login'][0]].message + ' - HX VMware username is ' + colab_user_username + '@ciscops.net)\n' + ' -    ' + vcenter_address + ' Success! \n' }}"
     when: vcenter_result.changed == true
     ignore_errors: true
   - name: Create Fail message for vCenter
     set_fact:
-      message: "{{ hostvars['localhost']['message'] + ' - HX VMware account(use ' + colab_user_username + '@ciscops.net):\n' + ' -    ' + vcenter_address + ' Failed! \n' }}"
+      message: "{{ hostvars['localhost']['message'] + ' - HX VMware username is ' + colab_user_username + '@ciscops.net)\n' + ' -    ' + vcenter_address + ' Failed! \n' }}"
     when: vcenter_result.changed == false
     ignore_errors: true
   - name: Send WxT Message
