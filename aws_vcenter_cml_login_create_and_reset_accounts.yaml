@@ -259,12 +259,12 @@
     ignore_errors: True
   - name: Create Success message for vCenter
     set_fact:
-      message: "{{ hostvars[groups['login'][0]].message + ' - HX VMware account(use $USERNAME@ciscops.net):\n' + ' -    ' + vcenter_address + ' Success! \n' }}"
+      message: "{{ hostvars[groups['login'][0]].message + ' - HX VMware account(use ' + colab_user_username + '@ciscops.net):\n' + ' -    ' + vcenter_address + ' Success! \n' }}"
     when: vcenter_result.changed == true
     ignore_errors: true
   - name: Create Fail message for vCenter
     set_fact:
-      message: "{{ hostvars['localhost']['message'] + ' - HX VMware account(use $USERNAME@ciscops.net):\n' + ' -    ' + vcenter_address + ' Failed! \n' }}"
+      message: "{{ hostvars['localhost']['message'] + ' - HX VMware account(use ' + colab_user_username + '@ciscops.net):\n' + ' -    ' + vcenter_address + ' Failed! \n' }}"
     when: vcenter_result.changed == false
     ignore_errors: true
   - name: Send WxT Message
