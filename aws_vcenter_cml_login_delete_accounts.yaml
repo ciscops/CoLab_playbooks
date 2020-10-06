@@ -272,17 +272,18 @@
   - name: Delete Failure Message Due to no Account
     set_fact:
       message: "{{ message + ' - VPN\n' + '    -  No account to delete \n' }}"
+      skip: true
     when: meraki_account_id == ""
     ignore_errors: yes
   - name: Delete Success Message
     set_fact:
       message: "{{ message + ' - VPN\n' + '    - ' + 'VPN Account Deleted! \n' }}"
-    when: meraki_delete_results.status == 204
+    when: meraki_delete_results.status == 204 and skip is not defined
     ignore_errors: yes
   - name: Delete Failure Message
     set_fact:
       message: "{{ message + ' - VPN\n' + '    -  Failed to delete \n' }}"
-    when: meraki_delete_results != 204
+    when: meraki_delete_results.status != 204 and skip is not defined
     ignore_errors: yes
   - name: Send WxT Message
     uri:
