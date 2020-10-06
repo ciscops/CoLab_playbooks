@@ -108,7 +108,7 @@
       method: POST
       return_content: yes
       body_format: json
-      body: "{{ {'email': colab_username + '@vpn.colab.ciscops.net', 'name': colab_username, 'password': colab_user_password_init, 'accountType': 'Client VPN', 'authorizations': [{ 'expiresAt': 'Never' }]} }}"
+      body: "{{ {'email': colab_username + '@vpn.colab.ciscops.net', 'name': colab_email, 'password': colab_user_password_init, 'accountType': 'Client VPN', 'authorizations': [{ 'expiresAt': 'Never' }]} }}"
       validate_certs: no
       follow_redirects: all
       status_code: [200, 201]
