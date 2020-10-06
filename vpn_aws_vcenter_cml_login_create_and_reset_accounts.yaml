@@ -102,6 +102,32 @@
   - name: Save shuffled output
     set_fact:
       colab_user_password_final: "{{ final_shuffled.stdout }}"
+  - name: Create Meraki VPN User
+    uri:
+      url: "{{ 'https://api.meraki.com/api/v1/networks/' + networkId + '/merakiAuthUsers' }}"
+      method: POST
+      return_content: yes
+      body_format: json
+      body: "{{ {'email': colab_username + '@vpn.colab.ciscops.net', 'name': colab_username, 'password': colab_user_password_init, 'accountType': 'Client VPN', 'authorizations': [{ 'expiresAt': 'Never' }]} }}"
+      validate_certs: no
+      follow_redirects: all
+      status_code: [200, 201]
+      headers: "{
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-Cisco-Meraki-API-Key': '{{ meraki_key }}'}"
+    register: create_meraki_user_results
+    ignore_errors: yes
+  - name: Create Success Message
+    set_fact:
+      message: "{{ ' - VPN username is ' + colab_user_username + '@vpn.colab.ciscops.net\n' + '    - VPN server: cpn-sdwan-grcpcbrcrv.dynamic-m.com ' + 'Success! \n' }}"
+    when: create_meraki_user_results.status == 201
+    ignore_errors: yes
+  - name: Create Failure Message
+    set_fact:
+      message: "{{ ' - VPN username ' + colab_user_username + '@vpn.colab.ciscops.net account creation Failed!\n' + '    - Error: ' + create_meraki_user_results.json['errors'][0] + ' \n' }}"
+    when: create_meraki_user_results.status != 201
+    ignore_errors: yes
   - name: Get CML Tokens
     uri:
       url: "{{ item + api_cml_authenticate }}"

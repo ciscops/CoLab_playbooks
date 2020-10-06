@@ -14,11 +14,14 @@
     wxt_bearer: "{{ wxt_bearer }}"                                # From Vault
     vcenter_admin_username: "{{ vcenter_admin_account }}"         # From Vault
     vcenter_admin_password: "{{ vcenter_admin_password }}"        # From Vault
+    meraki_key: "{{ meraki_auth_vault }}"                         # From Vault
+    networkId: "{{ meraki_netid_vault }}"                         # From Vault
     api_cml_authenticate: '/api/v0/authenticate'
     api_cml_create_account: '/api/v0/users/'
     api_cml_get_diagnostics: '/api/v0/diagnostics'
     cml_results: []
     message: ''
+    meraki_account_id: ""
   tasks:
   - name: Get Admin CML Tokens
     uri:
@@ -231,6 +234,56 @@
       message: "{{ hostvars[groups['login'][0]].message + ' - HX VMware\n' + '    - ' + vcenter_address + ' Failed! \n' }}"
     when: vcenter_result.failed == true or vcenter_result.changed == false
     ignore_errors: true
+  - name: Get Meraki Users
+    uri:
+      url: "{{ 'https://api.meraki.com/api/v1/networks/' + networkId + '/merakiAuthUsers' }}"
+      method: GET
+      return_content: yes
+      headers: "{
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'cache-control': 'no-cache',
+        'X-Cisco-Meraki-API-Key': '{{ meraki_key }}'}"
+      validate_certs: no
+    register: users
+    ignore_errors: yes
+  - name: Get Meraki Account
+    set_fact:
+      meraki_account_id: "{{ item.id }}"
+    when: item.email == "{{ colab_username + '@vpn.colab.ciscops.net' }}"
+    with_items: "{{ users.json }}"
+  - name: Delete Meraki VPN Account
+    uri:
+      url: "{{ 'https://api.meraki.com/api/v1/networks/' + networkId + '/merakiAuthUsers/' +  meraki_account_id}}"
+      method: DELETE
+      follow_redirects: all
+      status_code: [ 204 ]
+      return_content: yes
+      headers: "{
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-Cisco-Meraki-API-Key': '{{ meraki_key }}'}"
+      body_format: json
+      body: {}
+      validate_certs: no
+    register: meraki_delete_results
+    ignore_errors: yes
+    when: meraki_account_id != ""
+  - name: Delete Failure Message Due to no Account
+    set_fact:
+      message: "{{ message + ' - VPN\n' + '    -  No account to delete \n' }}"
+    when: meraki_account_id == ""
+    ignore_errors: yes
+  - name: Delete Success Message
+    set_fact:
+      message: "{{ message + ' - VPN\n' + '    - ' + 'VPN Account Deleted! \n' }}"
+    when: meraki_delete_results.status == 204
+    ignore_errors: yes
+  - name: Delete Failure Message
+    set_fact:
+      message: "{{ message + ' - VPN\n' + '    -  Failed to delete \n' }}"
+    when: meraki_delete_results != 204
+    ignore_errors: yes
   - name: Send WxT Message
     uri:
       url: "https://api.ciscospark.com/v1/messages"
