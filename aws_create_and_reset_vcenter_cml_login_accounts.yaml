@@ -346,7 +346,7 @@
   - name: Reset Success Message
     debug: var=meraki_reset_password_results.json['accountType']
     set_fact:
-      message: "{{ message + ' - VPN username ' + colab_username + '@vpn.colab.ciscops.net \n' + '    - ' + 'Meraki Success!\n' }}"
+      message: "{{ message + ' - VPN username is ' + colab_user_username + '@vpn.colab.ciscops.net\n' + '    - VPN server: cpn-sdwan-grcpcbrcrv.dynamic-m.com ' + 'Success! \n' }}"
     when: meraki_reset_password_results.status == 200
     ignore_errors: yes
   - name: Send WxT Message
