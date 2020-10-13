@@ -224,6 +224,7 @@
       action: "delete"
     no_log: False
     register: vcenter_result
+    ignore_errors: true
   - name: Create Success message for vCenter
     set_fact:
       message: "{{ hostvars[groups['login'][0]].message + ' - HX VMware\n' + '    - ' + vcenter_address + ' Account Deleted! \n' }}"
