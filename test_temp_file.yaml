@@ -2,6 +2,7 @@
   vars:
     kubeconfig: "{{ kubeconfig_vault }}"                    # From Vault
 
+  tasks:
     - name: Create temporary directory
       tempfile:
         suffix: helm
