@@ -50,3 +50,7 @@
       file:
         path: "{{ tempdir }}"
         state: absent
+
+    - name: print kubeconfig
+      debug:
+        var: kubeconfig
