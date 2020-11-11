@@ -1,6 +1,6 @@
 - hosts: localhost
   vars:
-    kubeconfig: "{{ kubeconfig_vault }}"                    # From Vault
+    kubeconfig: "{{ kubeconfig_from_vault }}"                    # From Vault
 
   tasks:
     - name: Create temporary directory
