@@ -2,7 +2,7 @@
   vars:
     username: "{{ colab_user_username }}"                         # From POST
     kubeconfig: "{{ kubeconfig_from_vault }}"                     # From Vault
-    webext_bearer: "{{ wxt_bearer }}"                                # From Vault
+    webext_bearer: "{{ wxt_bearer_vault }}"                       # From Vault
     colab_email: "{{ colab_user_email }}"                         # From POST
     subdomain: workshops.colab.ciscops.net
     helm_url: https://get.helm.sh/helm-v3.4.0-linux-amd64.tar.gz
