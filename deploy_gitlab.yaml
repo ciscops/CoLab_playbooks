@@ -1,7 +1,7 @@
 - hosts: localhost
   vars:
     username: "{{ colab_user_username }}"                   # From POST
-    kubeconfig: "{{ kubeconfig_vault }}"                    # From Vault
+    kubeconfig: "{{ kubeconfig_from_vault }}"                    # From Vault
     subdomain: workshops.colab.ciscops.net
     helm_url: https://get.helm.sh/helm-v3.4.0-linux-amd64.tar.gz
     helm_tar: helm-v3.4.0-linux-amd64.tar.gz
@@ -84,7 +84,7 @@
           prometheus:
             install: false
           nginx-ingress:
-            enabled: false 
+            enabled: false
 
     - name: Remove temp directory
       file:

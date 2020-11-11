@@ -1,7 +1,9 @@
 - hosts: localhost
   vars:
     kubeconfig: "{{ kubeconfig_from_vault }}"                    # From Vault
-
+    subdomain: workshops.colab.ciscops.net
+    helm_url: https://get.helm.sh/helm-v3.4.0-linux-amd64.tar.gz
+    helm_tar: helm-v3.4.0-linux-amd64.tar.gz
   tasks:
     - name: Create temporary directory
       tempfile:
@@ -15,8 +17,17 @@
 
     - name: Set helm_binary and kubeconfig
       set_fact:
+        helm_binary: "{{ tempdir }}/linux-amd64/helm"
         kubeconfig_file: "{{ tempdir }}/kubeconfig"
+    - name: Download helm binary
+      get_url:
+        url: "{{ helm_url }}"
+        dest: "{{ tempdir }}"
 
+    - name: Unpack helm binary
+      unarchive:
+        src: "{{ tempdir }}/{{ helm_tar }}"
+        dest: "{{ tempdir }}"
     - name: print kubeconfig
       debug:
         var: kubeconfig
