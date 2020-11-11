@@ -1,0 +1,86 @@
+- hosts: localhost
+  vars:
+    username: "{{ colab_user_username }}"                        # From POST
+    kubeconfig: "{{ kubeconfig_from_vault }}"                    # From Vault
+    subdomain: workshops.colab.ciscops.net
+    helm_url: https://get.helm.sh/helm-v3.4.0-linux-amd64.tar.gz
+    helm_tar: helm-v3.4.0-linux-amd64.tar.gz
+
+  tasks:
+    - name: Fail on missing vars
+      fail: msg="'username' is not defined"
+      when: username is undefined
+    - fail: msg="'kubeconfig' is not defined"
+      when: kubeconfig is undefined
+
+    - name: Create temporary directory
+      tempfile:
+        suffix: helm
+        state: directory
+      register: tempdir_var
+
+    - name: Set tempdir
+      set_fact:
+        tempdir: "{{ tempdir_var.path }}"
+
+    - name: Set helm_binary and kubeconfig
+      set_fact:
+        helm_binary: "{{ tempdir }}/linux-amd64/helm"
+        kubeconfig_file: "{{ tempdir }}/kubeconfig"
+
+
+    - name: Download helm binary
+      get_url:
+        url: "{{ helm_url }}"
+        dest: "{{ tempdir }}"
+
+    - name: Unpack helm binary
+      unarchive:
+        src: "{{ tempdir }}/{{ helm_tar }}"
+        dest: "{{ tempdir }}"
+
+    - name: Create kubeconfig
+      template:
+        src: kubeconfig.j2
+        dest: "{{ kubeconfig_file }}"
+
+    - name: Add stable chart repo
+      community.kubernetes.helm_repository:
+        binary_path: "{{ helm_binary }}"
+        name: gitlab
+        repo_url: "https://charts.gitlab.io/"
+
+    - name: Install helm chart
+      community.kubernetes.helm:
+        binary_path: "{{ helm_binary }}"
+        kubeconfig: "{{ kubeconfig_file }}"
+        chart_ref: gitlab/gitlab
+        chart_version: 4.5.3
+        update_repo_cache: yes
+        namespace: default
+        state: absent
+        release_name: "gitlab-{{ username }}"
+        release_values:
+          global:
+            hosts:
+              domain: "{{ username }}.{{ subdomain }}"
+              https: false
+            ingress:
+              annotations:
+                kubernetes.io/ingress.class: workshops
+              configureCertmanager: false
+              tls:
+                enabled: false
+            grafana:
+              enabled: false
+          certmanager:
+            install: false
+          prometheus:
+            install: false
+          nginx-ingress:
+            enabled: false
+
+    - name: Remove temp directory
+      file:
+        path: "{{ tempdir }}"
+        state: absent
