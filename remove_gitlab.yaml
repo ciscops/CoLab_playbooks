@@ -1,7 +1,9 @@
 - hosts: localhost
   vars:
-    username: "{{ colab_user_username }}"                        # From POST
-    kubeconfig: "{{ kubeconfig_from_vault }}"                    # From Vault
+    username: "{{ colab_user_username }}"                         # From POST
+    kubeconfig: "{{ kubeconfig_from_vault }}"                     # From Vault
+    wxt_bearer: "{{ wxt_bearer }}"                                # From Vault
+    colab_email: "{{ colab_user_email }}"                         # From POST
     subdomain: workshops.colab.ciscops.net
     helm_url: https://get.helm.sh/helm-v3.4.0-linux-amd64.tar.gz
     helm_tar: helm-v3.4.0-linux-amd64.tar.gz
@@ -28,27 +30,30 @@
         helm_binary: "{{ tempdir }}/linux-amd64/helm"
         kubeconfig_file: "{{ tempdir }}/kubeconfig"
 
-
     - name: Download helm binary
       get_url:
         url: "{{ helm_url }}"
         dest: "{{ tempdir }}"
+      ignore_errors: true
 
     - name: Unpack helm binary
       unarchive:
         src: "{{ tempdir }}/{{ helm_tar }}"
         dest: "{{ tempdir }}"
+      ignore_errors: true
 
     - name: Create kubeconfig
       template:
         src: kubeconfig.j2
         dest: "{{ kubeconfig_file }}"
+      ignore_errors: true
 
     - name: Add stable chart repo
       community.kubernetes.helm_repository:
         binary_path: "{{ helm_binary }}"
         name: gitlab
         repo_url: "https://charts.gitlab.io/"
+      ignore_errors: true
 
     - name: Install helm chart
       community.kubernetes.helm:
@@ -79,8 +84,35 @@
             install: false
           nginx-ingress:
             enabled: false
+      ignore_errors: true
+      register: helm_results
 
     - name: Remove temp directory
       file:
         path: "{{ tempdir }}"
         state: absent
+
+    - name: Create Success message
+      set_fact:
+        message: "{{ 'Deleted' }}"
+        check_flag: true
+      ignore_errors: true
+      when: helm_results.failed == false
+
+    - name: Create Failed message
+      set_fact:
+        message: "{{ 'Deletion Failed' }}"
+        check_flag: true
+      ignore_errors: true
+      when: helm_results.failed == true
+
+    - name: Send WxT Message
+      uri:
+        url: "https://api.ciscospark.com/v1/messages"
+        method: POST
+        return_content: yes
+        body: "{{ {'toPersonEmail': colab_email, 'markdown': message } | to_json }}"
+        validate_certs: no
+        headers: "{{ {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + wxt_bearer } }}"
