@@ -78,7 +78,9 @@
                   enabled: true
                   secretName: "{{ username }}-gitlab-tls"
           registry:
-            ingress: I can get you the kubeconfig for that, }-registry-tls"
+            ingress:
+              tls:
+                secretName: "{{ username }}-registry-tls"
           minio:
             ingress:
               tls:
@@ -105,14 +107,27 @@
       ignore_errors: true
       register: helm_results
 
+    - name: Fetch password
+      community.kubernetes.k8s_info:
+        kubeconfig: "{{ kubeconfig_file }}"
+        api_version: v1
+        kind: Secret
+        namespace: default
+        name: "gitlab-{{ username }}-gitlab-initial-root-password"
+      register: password_var
+
     - name: Remove temp directory
       file:
         path: "{{ tempdir }}"
         state: absent
 
+    - name: set password variable
+      set_fact:
+        gitlab_password: "{{ password_var.resources[0].data.password | b64decode }}"
+
     - name: Create Success message
       set_fact:
-        message: "{{ 'Your GitLab IP is X.X.X.X\n Username: XXX\n Password: XXX\n' }}"
+        message: "'Your GitLab host is gitlab.{{ username }}.{{ subdomain }}\n Username: root\n Password: {{ gitlab_password }}\n'"
         check_flag: true
       ignore_errors: true
       when: helm_results.failed == false
