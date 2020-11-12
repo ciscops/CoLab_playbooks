@@ -127,7 +127,7 @@
 
     - name: Create Success message
       set_fact:
-        message: "Your GitLab host is gitlab.{{ username }}.{{ subdomain }}\n - Username: root\n - Password: {{ gitlab_password }}\n"
+        message: "Your GitLab host will be gitlab.{{ username }}.{{ subdomain }}\n - Username: root\n - Password: {{ gitlab_password }}\n"
         check_flag: true
       ignore_errors: true
       when: helm_results.failed == false
