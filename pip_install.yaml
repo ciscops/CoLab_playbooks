@@ -1,0 +1,5 @@
+- hosts: localhost
+  tasks:
+    - name: Install bottle python package
+      pip:
+        name: openshift
