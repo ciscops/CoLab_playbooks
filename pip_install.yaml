@@ -2,4 +2,4 @@
   tasks:
     - name: Install python package
       pip:
-        name:  "{{ package_name }}
+        name:  "{{ package_name }}"
