@@ -95,7 +95,7 @@
                 cert-manager.io/issuer: "letsencrypt-{{ cert_target }}"
               configureCertmanager: false
               tls:
-                enabled: false
+                enabled: true
             grafana:
               enabled: false
           certmanager:
