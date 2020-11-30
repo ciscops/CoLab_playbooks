@@ -66,9 +66,6 @@
         namespace: default
         state: present
         release_name: "gitlab-{{ username }}"
-        podLabels:
-          owner: "{{ colab_email }}"
-          type: "colab-gitlab"
         release_values:
           image:
             repository: registry.gitlab.com/gitlab-org/build/cng/gitlab-webservice-ce
