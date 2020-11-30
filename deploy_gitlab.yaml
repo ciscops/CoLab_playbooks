@@ -68,8 +68,8 @@
         release_name: "gitlab-{{ username }}"
         release_values:
           podLabels:
-            owner: colab_email
-            type: "colab-gitlab"
+            app.kubernetes.io/owner: colab_email
+            app.kubernetes.io/type: "colab-gitlab"
           image:
             repository: registry.gitlab.com/gitlab-org/build/cng/gitlab-webservice-ce
           workhorse:
