@@ -67,6 +67,9 @@
         state: present
         release_name: "gitlab-{{ username }}"
         release_values:
+          podLabels:
+            owner: colab_email
+            type: "colab_gitlab"
           image:
             repository: registry.gitlab.com/gitlab-org/build/cng/gitlab-webservice-ce
           workhorse:
