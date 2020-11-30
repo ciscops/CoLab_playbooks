@@ -69,7 +69,7 @@
         release_values:
           podLabels:
             owner: colab_email
-            type: "colab_gitlab"
+            type: "colab-gitlab"
           image:
             repository: registry.gitlab.com/gitlab-org/build/cng/gitlab-webservice-ce
           workhorse:
