@@ -1,0 +1,37 @@
+---
+- hosts: localhost
+  gather_facts: no
+  vars:
+    action: "{{ action_post }}"
+    mongo_username: "{{ mongo_username_post }}"
+    mongo_password: "{{ mongo_password_post }}"
+    mongo_server: "{{ mongo_server_post }}"
+    mongo_port: "{{ mongo_port_post }}"
+    mongo_database_name: "{{ mongo_database_name_post }}"
+    mongo_collection_name: "{{ mongo_collection_name_post }}"
+    colab_username: "{{ colab_username_post }}"
+    colab_password: "{{ colab_password_post }}"
+    tasks:
+      - name: add or update user record
+        mongodb_helper:
+          action: "{{ action }}"
+          mongo_username: "{{ mongo_username }}"
+          mongo_password: "{{ mongo_password }}"
+          mongo_server: "{{ mongo_server }}"
+          mongo_port: "{{ mongo_port }}"
+          mongo_database_name: "{{ mongo_database_name }}"
+          mongo_collection_name: "{{ mongo_collection_name }}"
+          colab_username: "{{ colab_username }}"
+          colab_password: "{{ colab_password }}"
+        when: action == "add"
+      - name: remove user record
+        mongodb_helper:
+          action: "{{ action }}"
+          mongo_username: "{{ mongo_username }}"
+          mongo_password: "{{ mongo_password }}"
+          mongo_server: "{{ mongo_server }}"
+          mongo_port: "{{ mongo_port }}"
+          mongo_database_name: "{{ mongo_database_name }}"
+          mongo_collection_name: "{{ mongo_collection_name }}"
+          colab_username: "{{ colab_username }}"
+        when: action == "remove"

@@ -22,11 +22,11 @@ from ansible.module_utils.basic import *
 from cryptography.fernet import Fernet
 
 
-def encrypt(message: bytes, key: bytes) -> bytes:
+def encrypt(message: bytes, key: bytes) -> str:
     return Fernet(key).encrypt(message).decode()
 
 
-def decrypt(token: bytes, key: bytes) -> bytes:
+def decrypt(token: bytes, key: bytes) -> str:
     return Fernet(key).decrypt(token).decode()
 
 
