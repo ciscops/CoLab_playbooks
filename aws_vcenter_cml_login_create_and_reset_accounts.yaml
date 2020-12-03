@@ -26,82 +26,94 @@
     message: ''
     meraki_account_id: ""
   tasks:
-  - name: Generate initial password uppercase letters
-    shell:
-      cmd: tr -d -c 'A-Z' < /dev/urandom | head -c 7
-    register: initial_upper
-  - name: Set initial upper password numbers
+#  - name: Generate initial password uppercase letters
+#    shell:
+#      cmd: tr -d -c 'A-Z' < /dev/urandom | head -c 7
+#    register: initial_upper
+#  - name: Set initial upper password numbers
+#    set_fact:
+#      colab_user_password_upper_init: "{{ initial_upper.stdout }}"
+#  - name: Generate initial password lowercase letters
+#    shell:
+#      cmd: tr -d -c 'a-z' < /dev/urandom | head -c 7
+#    register: initial_lower
+#  - name: Set initial password lowercase letters
+#    set_fact:
+#      colab_user_password_lower_init: "{{ initial_lower.stdout }}"
+#  - name: Generate initial password numbers
+#    shell:
+#      cmd: tr -d -c '0-9' < /dev/urandom | head -c 3
+#    register: initial_numbers
+#  - name: Set initial password numbers
+#    set_fact:
+#      colab_user_password_numbers_init: "{{ initial_numbers.stdout }}"
+#  - name: Generate initial password symbols
+#    shell:
+#      cmd: tr -d -c '_[}^' < /dev/urandom | head -c 3
+#    register: init_symbols
+#  - name: Set initial password symbols
+#    set_fact:
+#      colab_user_password_symbols_init: "{{ init_symbols.stdout }}"
+#  - name: Create initial password string
+#    set_fact:
+#      colab_user_password_init_full: "{{ colab_user_password_upper_init + colab_user_password_lower_init + colab_user_password_numbers_init + colab_user_password_symbols_init }}"
+#  - name: Shuffle colab_user_password_init
+#    shell:
+#      cmd: echo "{{ colab_user_password_init_full }}" | fold -w1 | shuf | tr -d '\n'
+#    register: init_shuffled
+#  - name: Save shuffled output
+#    set_fact:
+#      colab_user_password_init: "{{ init_shuffled.stdout }}"
+#  - name: Generate final password uppercase letters
+#    shell:
+#      cmd: tr -d -c 'A-Z' < /dev/urandom | head -c 7
+#    register: final_upper
+#  - name: Set final upper password numbers
+#    set_fact:
+#      colab_user_password_upper_final: "{{ final_upper.stdout }}"
+#  - name: Generate final password lowercase letters
+#    shell:
+#      cmd: tr -d -c 'a-z' < /dev/urandom | head -c 7
+#    register: final_lower
+#  - name: Set final password lowercase letters
+#    set_fact:
+#      colab_user_password_lower_final: "{{ final_lower.stdout }}"
+#  - name: Generate final password numbers
+#    shell:
+#      cmd: tr -d -c '0-9' < /dev/urandom | head -c 3
+#    register: final_numbers
+#  - name: Set final password numbers
+#    set_fact:
+#      colab_user_password_numbers_final: "{{ final_numbers.stdout }}"
+#  - name: Generate final password symbols
+#    shell:
+#      cmd: tr -d -c '_[}^' < /dev/urandom | head -c 3
+#    register: final_symbols
+#  - name: Set final password symbols
+#    set_fact:
+#      colab_user_password_symbols_final: "{{ final_symbols.stdout }}"
+#  - name: Create final password string
+#    set_fact:
+#      colab_user_password_final_full: "{{ colab_user_password_upper_final + colab_user_password_lower_final + colab_user_password_numbers_final + colab_user_password_symbols_final }}"
+#  - name: Shuffle colab_user_password_final
+#    shell:
+#      cmd: echo "{{ colab_user_password_final_full }}" | fold -w1 | shuf | tr -d '\n'
+#    register: final_shuffled
+#  - name: Save shuffled output
+#    set_fact:
+#      colab_user_password_final: "{{ final_shuffled.stdout }}"
+  - name: Generate Initial Password
+    generate_password:
+    register: results
+  - name: Save initial password
     set_fact:
-      colab_user_password_upper_init: "{{ initial_upper.stdout }}"
-  - name: Generate initial password lowercase letters
-    shell:
-      cmd: tr -d -c 'a-z' < /dev/urandom | head -c 7
-    register: initial_lower
-  - name: Set initial password lowercase letters
+      colab_user_password_init: "{{ results.meta }}"
+  - name: Generate Final Password
+    generate_password:
+    register: results
+  - name: Save final password
     set_fact:
-      colab_user_password_lower_init: "{{ initial_lower.stdout }}"
-  - name: Generate initial password numbers
-    shell:
-      cmd: tr -d -c '0-9' < /dev/urandom | head -c 3
-    register: initial_numbers
-  - name: Set initial password numbers
-    set_fact:
-      colab_user_password_numbers_init: "{{ initial_numbers.stdout }}"
-  - name: Generate initial password symbols
-    shell:
-      cmd: tr -d -c '_[}^' < /dev/urandom | head -c 3
-    register: init_symbols
-  - name: Set initial password symbols
-    set_fact:
-      colab_user_password_symbols_init: "{{ init_symbols.stdout }}"
-  - name: Create initial password string
-    set_fact:
-      colab_user_password_init_full: "{{ colab_user_password_upper_init + colab_user_password_lower_init + colab_user_password_numbers_init + colab_user_password_symbols_init }}"
-  - name: Shuffle colab_user_password_init
-    shell:
-      cmd: echo "{{ colab_user_password_init_full }}" | fold -w1 | shuf | tr -d '\n'
-    register: init_shuffled
-  - name: Save shuffled output
-    set_fact:
-      colab_user_password_init: "{{ init_shuffled.stdout }}"
-  - name: Generate final password uppercase letters
-    shell:
-      cmd: tr -d -c 'A-Z' < /dev/urandom | head -c 7
-    register: final_upper
-  - name: Set final upper password numbers
-    set_fact:
-      colab_user_password_upper_final: "{{ final_upper.stdout }}"
-  - name: Generate final password lowercase letters
-    shell:
-      cmd: tr -d -c 'a-z' < /dev/urandom | head -c 7
-    register: final_lower
-  - name: Set final password lowercase letters
-    set_fact:
-      colab_user_password_lower_final: "{{ final_lower.stdout }}"
-  - name: Generate final password numbers
-    shell:
-      cmd: tr -d -c '0-9' < /dev/urandom | head -c 3
-    register: final_numbers
-  - name: Set final password numbers
-    set_fact:
-      colab_user_password_numbers_final: "{{ final_numbers.stdout }}"
-  - name: Generate final password symbols
-    shell:
-      cmd: tr -d -c '_[}^' < /dev/urandom | head -c 3
-    register: final_symbols
-  - name: Set final password symbols
-    set_fact:
-      colab_user_password_symbols_final: "{{ final_symbols.stdout }}"
-  - name: Create final password string
-    set_fact:
-      colab_user_password_final_full: "{{ colab_user_password_upper_final + colab_user_password_lower_final + colab_user_password_numbers_final + colab_user_password_symbols_final }}"
-  - name: Shuffle colab_user_password_final
-    shell:
-      cmd: echo "{{ colab_user_password_final_full }}" | fold -w1 | shuf | tr -d '\n'
-    register: final_shuffled
-  - name: Save shuffled output
-    set_fact:
-      colab_user_password_final: "{{ final_shuffled.stdout }}"
+      colab_user_password_final: "{{ results.meta }}"
   - name: Get CML Tokens
     uri:
       url: "{{ item + api_cml_authenticate }}"
