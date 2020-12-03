@@ -14,11 +14,12 @@
     - name: Decrypt string
       encrypt_or_decrypt_string:
         action: "decrypt"
-        message: encrypted_string
+        message: encrypted_string.meta
         key: "N6l5jb3P_hWUmF2nkPGczIqpv0NkaYPhg606obs9ODE="
       register: decrypted_string
 
     - debug: var=decrypted_string
+
     - name: Decrypt string
       encrypt_or_decrypt_string:
         action: "decrypt"
