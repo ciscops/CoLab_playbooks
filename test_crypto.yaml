@@ -14,6 +14,14 @@
     - name: Decrypt string
       encrypt_or_decrypt_string:
         action: "decrypt"
+        message: encrypted_string
+        key: "N6l5jb3P_hWUmF2nkPGczIqpv0NkaYPhg606obs9ODE="
+      register: decrypted_string
+
+    - debug: var=decrypted_string
+    - name: Decrypt string
+      encrypt_or_decrypt_string:
+        action: "decrypt"
         message: "gAAAAABfyQ96xYwLyhD4Y3Ps9PtdL2agSE85XMUZ7ovnSOExTDBqD4duTpzl9ueP6hwDwXAlXVbL_eDQ2l7uxvMznJ-FyFUwnw=="
         key: "N6l5jb3P_hWUmF2nkPGczIqpv0NkaYPhg606obs9ODE="
       register: decrypted_string
