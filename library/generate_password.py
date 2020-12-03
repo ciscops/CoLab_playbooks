@@ -16,11 +16,12 @@ import random
 
 
 def main():
+    fields = dict()
     password = "".join(secrets.choice(string.ascii_uppercase) for x in range(7))
     password += "".join(secrets.choice(string.ascii_lowercase) for x in range(7))
     password += "".join(secrets.choice(string.digits) for x in range(3))
     password += "".join(secrets.choice("_[}^") for x in range(3))
-    module = AnsibleModule()
+    module = AnsibleModule(argument_spec=fields)
     module.exit_json(changed=True, meta=''.join(random.sample(password, len(password))))
 
 
