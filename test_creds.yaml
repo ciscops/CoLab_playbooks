@@ -7,5 +7,5 @@
   tasks:
     - debug:
       msg: "{{ cmla }}"
-    -  debug:
+    - debug:
       msg: "{{ cmlp }}"
