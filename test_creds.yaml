@@ -1,11 +1,9 @@
 ---
 - hosts: localhost
   gather_facts: no
-  vars:
-    cml_a: "{{ cml_account }}"
-    cml_p: "{{ cml_password }}"
+
   tasks:
-    debug:
-      msg: "{{ cml_a }}"
-    debug:
-      msg: "{{ cml_p }}"
+    - debug:
+      msg: "{{ cml_account }}"
+    -  debug:
+      msg: "{{ cml_password }}"
