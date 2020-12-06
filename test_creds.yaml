@@ -6,6 +6,6 @@
     cmlp: "{{ cml_password }}"
   tasks:
     - debug:
-      msg: "{{ cmla }}"
+        msg: "{{ cmla }}"
     - debug:
-      msg: "{{ cmlp }}"
+        msg: "{{ cmlp }}"
