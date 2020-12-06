@@ -7,8 +7,8 @@
     colab_email: "{{ colab_user_email }}"                         # From POST
     colab_username: "{{ colab_user_username }}"                   # From POST
     vcenter_address: "{{ vcenter_address }}"                      # From POST
-    cml_admin_account: "{{ cml_admin_account }}"                  # From Vault
-    cml_admin_password: "{{ cml_admin_password }}"                # From Vault
+    cml_admin_account: "{{ cml_account }}"                  # From Vault
+    cml_admin_password: "{{ cml_password }}"                # From Vault
     aws_access_key: "{{ lookup('env','AWS_ACCESS_KEY_ID') }}"     # From Vault
     aws_secret_key: "{{ lookup('env','AWS_SECRET_ACCESS_KEY') }}" # From Vault
     wxt_bearer: "{{ wxt_bearer }}"                                # From Vault
