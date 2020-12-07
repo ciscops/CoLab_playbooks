@@ -7,13 +7,13 @@
     colab_email: "{{ colab_user_email }}"                         # From POST
     colab_username: "{{ colab_user_username }}"                   # From POST
     vcenter_address: "{{ vcenter_address }}"                      # From POST
-    cml_admin_account: "{{ cml_account }}"                  # From Vault
-    cml_admin_password: "{{ cml_password }}"                # From Vault
+    cml_admin_account: "{{ cml_account }}"                        # From Vault
+    cml_admin_password: "{{ cml_password }}"                      # From Vault
     aws_access_key: "{{ lookup('env','AWS_ACCESS_KEY_ID') }}"     # From Vault
     aws_secret_key: "{{ lookup('env','AWS_SECRET_ACCESS_KEY') }}" # From Vault
-    wxt_bearer: "{{ wxt_bearer }}"                                # From Vault
-    vcenter_admin_username: "{{ vcenter_admin_account }}"         # From Vault
-    vcenter_admin_password: "{{ vcenter_admin_password }}"        # From Vault
+    wxt_bearer: "{{ wxt_bearer_vault }}"                          # From Vault
+    vcenter_admin_username: "{{ vcenter_admin_account_vault }}"   # From Vault
+    vcenter_admin_password: "{{ vcenter_admin_password_vault }}"  # From Vault
     meraki_key: "{{ meraki_auth_vault }}"                         # From Vault
     networkId: "{{ meraki_netid_vault }}"                         # From Vault
     api_cml_authenticate: '/api/v0/authenticate'
@@ -195,7 +195,7 @@
   tasks:
     - name: Remove user
       user:
-        name: "{{ hostvars['localhost']['colab_username'] }}"
+        name: "{{ colab_user_username }}"
         state: absent
         remove: yes
       ignore_errors: true
@@ -218,7 +218,7 @@
   - name: Delete user from vCenter
     vcenter_user_admin:
       user: "{{ colab_user_username }}"
-      vcenter_admin_username: "{{ vcenter_admin_account }}"
+      vcenter_admin_username: "{{ vcenter_admin_username }}"
       vcenter_admin_password: "{{ vcenter_admin_password }}"
       vcenter_address: "{{ vcenter_address }}"
       action: "delete"
@@ -251,7 +251,7 @@
   - name: Get Meraki Account
     set_fact:
       meraki_account_id: "{{ item.id }}"
-    when: item.email == "{{ colab_username + '@vpn.colab.ciscops.net' }}"
+    when: item.email == "{{ colab_user_username + '@vpn.colab.ciscops.net' }}"
     with_items: "{{ users.json }}"
   - name: Delete Meraki VPN Account
     uri:
@@ -291,7 +291,7 @@
       url: "https://api.ciscospark.com/v1/messages"
       method: POST
       return_content: yes
-      body: "{{ {'toPersonEmail': colab_email, 'markdown': message } | to_json }}"
+      body: "{{ {'toPersonEmail': colab_user_email, 'markdown': message } | to_json }}"
       validate_certs: no
       headers: "{{ {
         'Content-Type': 'application/json',
