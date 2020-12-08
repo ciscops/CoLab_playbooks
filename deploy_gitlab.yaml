@@ -1,7 +1,7 @@
 - hosts: localhost
   vars:
     kubeconfig: "{{ kubeconfig_from_vault }}"                     # From Vault
-    webext_bearer: "{{ wxt_bearer }}"                             # From Vault
+    wxt_bearer: "{{ wxt_bearer_vault }}"                          # From Vault
     username: "{{ colab_user_username }}"                         # From POST
     colab_email: "{{ colab_user_email }}"                         # From POST
     cert_target: "{{ cert_post_target | default('prod') }}"       # From POST
@@ -151,4 +151,4 @@
         validate_certs: no
         headers: "{{ {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + webext_bearer } }}"
+        'Authorization': 'Bearer ' + wxt_bearer } }}"
