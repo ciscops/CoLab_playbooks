@@ -56,9 +56,9 @@ def update_record(updated_dict: dict, data: dict) -> int:
 def update_dict(convert_dict: dict, ansible_input: dict) -> dict:
     import time
     epoch_time_now = int(time.time())
-    convert_dict['email'] = ansible_input['email']
-    convert_dict['username'] = ansible_input['username']
-    convert_dict['password'] = ansible_input['password']
+    convert_dict['email'] = ansible_input['colab_email']
+    convert_dict['username'] = ansible_input['colab_username']
+    convert_dict['password'] = ansible_input['colab_password']
     convert_dict['creation_date'] = convert_dict.get('creation_date', epoch_time_now)
     convert_dict['renewal_date'] = convert_dict.get('renewal_date', '')
     convert_dict['renewal_request_send_date'] = convert_dict.get('renewal_request_send_date', '')
