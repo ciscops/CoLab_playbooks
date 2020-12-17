@@ -137,8 +137,8 @@ def main():
         "aws_region": {"required": True, "type": "str"},
         "dynamo_table": {"required": True, "type": "str"},
         "colab_email": {"required": True, "type": "str"},
-        "colab_username": {"required": True, "type": "str"},
-        "colab_password": {"required": True, "type": "str"}
+        "colab_username": {"required": False, "type": "str"},
+        "colab_password": {"required": False, "type": "str"}
     }
 
     choice_map = {
