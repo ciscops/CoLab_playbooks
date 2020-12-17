@@ -82,7 +82,7 @@ def update(data: dict) -> (bool, bool, int):
     here, result = download_item(data)
     result_dict = convert_download_item_result_to_dict(result)
     updated_dict = update_dict(result_dict, data)
-    if update_record(updated_dict) == 200:
+    if update_record(updated_dict, data) == 200:
         return False, True, 200
     else:
         return True, False, 500
