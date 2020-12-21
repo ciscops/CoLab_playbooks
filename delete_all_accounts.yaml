@@ -320,5 +320,5 @@
     register: record_results
     ignore_errors: true
 
-  - import: remove_gitlab.yaml
+  - import_tasks: remove_gitlab.yaml
     when: record_results.get('meta') == true
