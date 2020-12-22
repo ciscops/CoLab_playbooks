@@ -128,14 +128,14 @@
 
     - name: Create Success message
       set_fact:
-        message: "Deleted"
+        message: "CPN Workshop GitLab Deployment Deleted"
         check_flag: true
       ignore_errors: true
       when: helm_results.failed == false
 
     - name: Create Failed message
       set_fact:
-        message: "Deletion Failed"
+        message: "CPN Workshop GitLab Deployment Deletion Failed"
         check_flag: true
       ignore_errors: true
       when: helm_results.failed == true
