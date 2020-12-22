@@ -5,7 +5,7 @@
     aws_access_key_prod: "{{ aws_prod_key_vault }}"               # From Vault
     aws_secret_key_prod: "{{ aws_prod_token_vault }}"             # From Vault
     aws_region_prod: "{{ aws_prod_region_vault }}"                # From Vault
-    username: "{{ colab_user_username }}"                         # From POST
+    colab_username: "{{ colab_user_username }}"                   # From POST
     colab_email: "{{ colab_user_email }}"                         # From POST
     cert_target: "{{ cert_post_target | default('prod') }}"       # From POST
     subdomain: workshops.colab.ciscops.net
@@ -14,8 +14,8 @@
 
   tasks:
     - name: Fail on missing vars
-      fail: msg="'username' is not defined"
-      when: username is undefined
+      fail: msg="'colab_username' is not defined"
+      when: colab_username is undefined
     - fail: msg="'kubeconfig' is not defined"
       when: kubeconfig is undefined
 
@@ -68,7 +68,7 @@
         update_repo_cache: yes
         namespace: default
         state: present
-        release_name: "gitlab-{{ username }}"
+        release_name: "gitlab-{{ colab_username }}"
         release_values:
           podLabels:
             owner: "{{ colab_email }}"
@@ -82,19 +82,19 @@
               ingress:
                 tls:
                   enabled: true
-                  secretName: "{{ username }}-gitlab-tls"
+                  secretName: "{{ colab_username }}-gitlab-tls"
           registry:
             ingress:
               tls:
-                secretName: "{{ username }}-registry-tls"
+                secretName: "{{ colab_username }}-registry-tls"
           minio:
             ingress:
               tls:
-                secretName: "{{ username }}-minio-tls"
+                secretName: "{{ colab_username }}-minio-tls"
 
           global:
             hosts:
-              domain: "{{ username }}.{{ subdomain }}"
+              domain: "{{ colab_username }}.{{ subdomain }}"
             ingress:
               annotations:
                 kubernetes.io/ingress.class: workshops
@@ -119,7 +119,7 @@
         api_version: v1
         kind: Secret
         namespace: default
-        name: "gitlab-{{ username }}-gitlab-initial-root-password"
+        name: "gitlab-{{ colab_username }}-gitlab-initial-root-password"
       register: password_var
 
     - name: Remove temp directory
@@ -144,7 +144,7 @@
 
     - name: Create Success message
       set_fact:
-        message: "Your GitLab host will be gitlab.{{ username }}.{{ subdomain }}\n - Username: root\n - Password: {{ gitlab_password }}\n"
+        message: "Your GitLab host will be gitlab.{{ colab_username }}.{{ subdomain }}\n - Username: root\n - Password: {{ gitlab_password }}\n"
         check_flag: true
       ignore_errors: true
       when: helm_results.failed == false
