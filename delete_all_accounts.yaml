@@ -309,16 +309,16 @@
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + wxt_bearer } }}"
 
-#  - name: get gitlab record
-#    dynamo_gitlab:
-#      action: "check_record"
-#      aws_key: "{{ aws_access_key_prod }}"
-#      aws_secret: "{{ aws_secret_key_prod }}"
-#      aws_region: "{{ aws_prod_region_vault }}"
-#      dynamo_table: colab_gitlab
-#      colab_username: "{{ username }}"
-#    register: record_results
-#    ignore_errors: true
-#
-#  - import_tasks: remove_gitlab.yaml
-#    when: record_results.get('meta') == true
+  - name: get gitlab record
+    dynamo_gitlab:
+      action: "check_record"
+      aws_key: "{{ aws_access_key_prod }}"
+      aws_secret: "{{ aws_secret_key_prod }}"
+      aws_region: "{{ aws_prod_region_vault }}"
+      dynamo_table: colab_gitlab
+      colab_username: "{{ username }}"
+    register: record_results
+    ignore_errors: true
+
+- import_playbook: remove_gitlab.yaml
+  when: record_results.get('meta') == true
