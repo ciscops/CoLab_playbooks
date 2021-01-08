@@ -1,0 +1,171 @@
+- hosts: localhost
+  vars:
+    kubeconfig: "{{ kubeconfig_from_vault }}"                     # From Vault
+    wxt_bearer: "{{ wxt_bearer_vault }}"                          # From Vault
+    aws_access_key_prod: "{{ aws_prod_key_vault }}"               # From Vault
+    aws_secret_key_prod: "{{ aws_prod_token_vault }}"             # From Vault
+    aws_region_prod: "{{ aws_prod_region_vault }}"                # From Vault
+
+    room_id: "{{ colab_room_id }}"                                # From POST
+
+    colab_username: "{{ colab_user_username }}"                   # From POST
+    colab_email: "{{ colab_user_email }}"                         # From POST
+    cert_target: "{{ cert_post_target | default('staging') }}"    # From POST
+    subdomain: workshops.colab.ciscops.net
+    helm_url: https://get.helm.sh/helm-v3.4.0-linux-amd64.tar.gz
+    helm_tar: helm-v3.4.0-linux-amd64.tar.gz
+
+  tasks:
+    - name: Fail on missing vars
+      fail: msg="'colab_username' is not defined"
+      when: colab_username is undefined
+    - fail: msg="'kubeconfig' is not defined"
+      when: kubeconfig is undefined
+
+    - name: Create temporary directory
+      tempfile:
+        suffix: helm
+        state: directory
+      register: tempdir_var
+
+    - name: Set tempdir
+      set_fact:
+        tempdir: "{{ tempdir_var.path }}"
+
+    - name: Set helm_binary and kubeconfig
+      set_fact:
+        helm_binary: "{{ tempdir }}/linux-amd64/helm"
+        kubeconfig_file: "{{ tempdir }}/kubeconfig"
+
+    - name: Download helm binary
+      get_url:
+        url: "{{ helm_url }}"
+        dest: "{{ tempdir }}"
+      ignore_errors: true
+
+    - name: Unpack helm binary
+      unarchive:
+        src: "{{ tempdir }}/{{ helm_tar }}"
+        dest: "{{ tempdir }}"
+      ignore_errors: true
+
+    - name: Create kubeconfig
+      template:
+        src: kubeconfig.j2
+        dest: "{{ kubeconfig_file }}"
+      ignore_errors: true
+
+    - name: Add stable chart repo
+      community.kubernetes.helm_repository:
+        binary_path: "{{ helm_binary }}"
+        name: gitlab
+        repo_url: "https://charts.gitlab.io/"
+      ignore_errors: true
+
+    - name: Install helm chart
+      community.kubernetes.helm:
+        binary_path: "{{ helm_binary }}"
+        kubeconfig: "{{ kubeconfig_file }}"
+        chart_ref: gitlab/gitlab
+        chart_version: 4.5.3
+        update_repo_cache: yes
+        namespace: default
+        state: absent
+        release_name: "gitlab-{{ colab_username }}"
+        release_values:
+          image:
+            repository: registry.gitlab.com/gitlab-org/build/cng/gitlab-webservice-ce
+          workhorse:
+            image: registry.gitlab.com/gitlab-org/build/cng/gitlab-workhorse-ce
+          gitlab:
+            webservice:
+              ingress:
+                tls:
+                  enabled: true
+                  secretName: "{{ colab_username }}-gitlab-tls"
+          registry:
+            ingress:
+              tls:
+                secretName: "{{ colab_username }}-registry-tls"
+          minio:
+            ingress:
+              tls:
+                secretName: "{{ colab_username }}-minio-tls"
+
+          global:
+            hosts:
+              domain: "{{ colab_username }}.{{ subdomain }}"
+            ingress:
+              annotations:
+                kubernetes.io/ingress.class: workshops
+                cert-manager.io/issuer: "letsencrypt-{{ cert_target }}"
+              configureCertmanager: false
+              tls:
+                enabled: false
+            grafana:
+              enabled: false
+          certmanager:
+            install: false
+          prometheus:
+            install: false
+          nginx-ingress:
+            enabled: false
+      ignore_errors: true
+      register: helm_results
+
+    - name: Remove temp directory
+      file:
+        path: "{{ tempdir }}"
+        state: absent
+
+    - name: Update COLABOT DynamoDB for Gitlab
+      dynamo_gitlab:
+        action: "delete"
+        aws_key: "{{ aws_prod_key_vault }}"
+        aws_secret: "{{ aws_prod_token_vault }}"
+        aws_region: "{{ aws_prod_region_vault }}"
+        dynamo_table: colab_gitlab
+        colab_username: "{{ colab_user_username }}"
+      ignore_errors: True
+      when: helm_results.failed == false
+
+    - name: Create Success message
+      set_fact:
+        message: "CPN Workshop GitLab Deployment Deleted"
+        check_flag: true
+      ignore_errors: true
+      when: helm_results.failed == false
+
+    - name: Create Failed message
+      set_fact:
+        message: "CPN Workshop GitLab Deployment Deletion Failed"
+        check_flag: true
+      ignore_errors: true
+      when: helm_results.failed == true
+
+    - name: Send WxT Message
+      uri:
+        url: "https://api.ciscospark.com/v1/messages"
+        method: POST
+        return_content: yes
+        body: "{{ {'toPersonEmail': colab_email, 'markdown': message } | to_json }}"
+        validate_certs: no
+        headers: "{{ {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + wxt_bearer } }}"
+
+    - name: Add Username for WxT Space Message
+      set_fact:
+        message: "{{ 'GitLab deletion results for ' + colab_user_email + ': \n ' + message }}"
+      ignore_errors: yes
+
+    - name: Send WxT Message to WxT Space
+      uri:
+        url: "https://api.ciscospark.com/v1/messages"
+        method: POST
+        return_content: yes
+        body: "{{ {'roomId': colab_room_id, 'markdown': message } | to_json }}"
+        validate_certs: no
+        headers: "{{ {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + wxt_bearer } }}"
