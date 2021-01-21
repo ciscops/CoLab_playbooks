@@ -82,7 +82,7 @@
     vars:
       complete_cml_labs: []
     set_fact:
-      complete_cml_labs: "{{ complete_cml_labs }} + [ {{ item | combine({'user_token': user_token_server_dict[item.server]}) }} ]"
+      complete_cml_labs: "{{ complete_cml_labs }} + [ {{ item | combine({'user_token': user_token_server_dict[item.server] | default('missing')}) }} ]"
     ignore_errors: yes
     with_items: "{{ cml_labs }}"
   - name: Flatten results since haven't figured out loops in loops in ansible
@@ -253,7 +253,7 @@
     ignore_errors: yes
   - name: Get Meraki Account
     set_fact:
-      meraki_account_id: "{{ item.id }}"
+      meraki_account_id: "{{ item.id | default("") }}"
     when: item.email == "{{ colab_user_username + '@vpn.colab.ciscops.net' }}"
     with_items: "{{ users.json }}"
   - name: Delete Meraki VPN Account
