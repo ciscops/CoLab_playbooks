@@ -272,7 +272,7 @@
     ignore_errors: yes
   - name: Get Meraki Account
     set_fact:
-      meraki_account_id: "{{ item.id | default("") }}"
+      meraki_account_id: "{{ item.id | default('') }}"
     when: item.email == "{{ colab_user_username + '@vpn.colab.ciscops.net' }}"
     with_items: "{{ users.json }}"
   - name: Delete Meraki VPN Account
