@@ -195,6 +195,7 @@
 - hosts: login
   gather_facts: no
   connection: ssh
+  ignore_unreachable: yes
   tasks:
     - name: Remove user
       user:
