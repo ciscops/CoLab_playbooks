@@ -31,6 +31,7 @@
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + wxt_bearer } }}"
     when: record_results.get('meta') == false
+    ignore_errors: true
   - name: Extend gitlab record
     dynamo_gitlab:
       action: "create"
@@ -41,6 +42,7 @@
       colab_username:  "{{ username }}"
     register: extend_result
     when: record_results.get('meta') == true
+    ignore_errors: true
   - name: Send Extended Account WxT Message
     uri:
       url: "https://api.ciscospark.com/v1/messages"
@@ -64,3 +66,4 @@
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + wxt_bearer } }}"
     when: extend_result.get('failed') == true or record_results.get('failed') == true
+    ignore_errors: true

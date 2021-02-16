@@ -153,6 +153,7 @@
         headers: "{{ {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + wxt_bearer } }}"
+      ignore_errors: true
 
     - name: Add Username for WxT Space Message
       set_fact:
@@ -169,3 +170,4 @@
         headers: "{{ {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + wxt_bearer } }}"
+      ignore_errors: true

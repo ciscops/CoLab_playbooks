@@ -122,6 +122,7 @@
         namespace: default
         name: "gitlab-{{ colab_username }}-gitlab-initial-root-password"
       register: password_var
+      ignore_errors: true
 
     - name: Remove temp directory
       file:
@@ -167,3 +168,4 @@
         headers: "{{ {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + wxt_bearer } }}"
+      ignore_errors: true
