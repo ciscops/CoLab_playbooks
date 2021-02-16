@@ -1,4 +1,5 @@
 - hosts: localhost
+  ignore_unreachable: yes
   vars:
     kubeconfig: "{{ kubeconfig_from_vault }}"                     # From Vault
     wxt_bearer: "{{ wxt_bearer_vault }}"                          # From Vault

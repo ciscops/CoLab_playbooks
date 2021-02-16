@@ -1,6 +1,7 @@
 ---
 - hosts: localhost
   gather_facts: no
+  ignore_unreachable: yes
   vars:
     cml_servers: "{{ cml_server_list }}"                          # From POST
     colab_email: "{{ colab_user_email }}"                         # From POST
@@ -237,6 +238,7 @@
 - hosts: localhost
   connection: local
   gather_facts: no
+  ignore_unreachable: yes
   tasks:
   - name: Delete user from vCenter
     vcenter_user_admin:

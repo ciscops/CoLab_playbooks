@@ -1,6 +1,7 @@
 ---
 - hosts: localhost
   gather_facts: no
+  ignore_unreachable: yes
   vars:
     aws_access_key_prod: "{{ aws_prod_key_vault }}"               # From Vault
     aws_secret_key_prod: "{{ aws_prod_token_vault }}"             # From Vault
