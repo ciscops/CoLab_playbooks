@@ -56,14 +56,14 @@
       ignore_errors: true
 
     - name: Add stable chart repo
-      community.kubernetes.helm_repository:
+      kubernetes.core.helm_repository:
         binary_path: "{{ helm_binary }}"
         name: gitlab
         repo_url: "https://charts.gitlab.io/"
       ignore_errors: true
 
     - name: Install helm chart
-      community.kubernetes.helm:
+      kubernetes.core.helm:
         binary_path: "{{ helm_binary }}"
         kubeconfig: "{{ kubeconfig_file }}"
         chart_ref: gitlab/gitlab
