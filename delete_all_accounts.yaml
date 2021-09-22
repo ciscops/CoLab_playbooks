@@ -259,6 +259,7 @@
       meraki_account_id: "{{ item.id | default('') }}"
     when: item.email == "{{ colab_user_username + '@vpn.colab.ciscops.net' }}"
     with_items: "{{ users.json }}"
+    ignore_errors: true
   - name: Delete Meraki VPN Account
     uri:
       url: "{{ 'https://api.meraki.com/api/v1/networks/' + networkId + '/merakiAuthUsers/' +  meraki_account_id}}"
