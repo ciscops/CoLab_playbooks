@@ -3,3 +3,4 @@
     - name: Install python package
       pip:
         name:  "{{ package_name }}"
+        state: "{{ state_choice }}"

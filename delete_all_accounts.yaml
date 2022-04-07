@@ -4,7 +4,6 @@
   ignore_unreachable: yes
   vars:
     cml_servers: "{{ cml_server_list }}"                          # From POST
-    colab_user_password: "{{ colab_user_password }}"              # From POST
     colab_email: "{{ colab_user_email }}"                         # From POST
     colab_username: "{{ colab_user_username }}"                   # From POST
     vcenter_address: "{{ vcenter_address }}"                      # From POST
@@ -12,9 +11,9 @@
     cml_admin_password: "{{ cml_password }}"                      # From Vault
     aws_access_key: "{{ lookup('env','AWS_ACCESS_KEY_ID') }}"     # From Vault
     aws_secret_key: "{{ lookup('env','AWS_SECRET_ACCESS_KEY') }}" # From Vault
-    aws_access_key_prod: "{{ aws_prod_key_vault }}"                # From Vault
-    aws_secret_key_prod: "{{ aws_prod_token_vault }}"              # From Vault
-    aws_region_prod: "{{ aws_prod_region_vault }}"                 # From Vault
+    aws_access_key_prod: "{{ aws_prod_key_vault }}"               # From Vault
+    aws_secret_key_prod: "{{ aws_prod_token_vault }}"             # From Vault
+    aws_region_prod: "{{ aws_prod_region_vault }}"                # From Vault
     wxt_bearer: "{{ wxt_bearer_vault }}"                          # From Vault
     vcenter_admin_username: "{{ vcenter_admin_account_vault }}"   # From Vault
     vcenter_admin_password: "{{ vcenter_admin_password_vault }}"  # From Vault
@@ -174,20 +173,19 @@
     when: item.status_code != '200'
     with_items: "{{ cml_results }}"
   - name: Delete AWS Account
-    iam:
-      iam_type: user
+    community.aws.iam_user:
       name: "{{ colab_username }}"
       state: absent
       aws_access_key: "{{ aws_access_key }}"
       aws_secret_key: "{{ aws_secret_key }}"
     register: iam_user
     ignore_errors: true
-  - name: Create Success message for AWS
+  - name: Delete Success message for AWS
     set_fact:
       message: "{{ message + ' - AWS\n' + '    - ' + 'AWS Account Deleted! \n' }}"
       check_flag: true
     when: iam_user.changed == true and iam_user.failed == false # and did't fail
-  - name: Create Fail messages for AWS
+  - name: Delete Fail messages for AWS
     set_fact:
       message: "{{ message + ' - AWS\n' + '    - ' + 'AWS Account Deletion Failed: ' + iam_user.msg + ' \n' }}"
     when: iam_user.changed == false or iam_user.failed == false
@@ -312,17 +310,3 @@
       headers: "{{ {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + wxt_bearer } }}"
-
-  - name: get gitlab record
-    dynamo_gitlab:
-      action: "check_record"
-      aws_key: "{{ aws_access_key_prod }}"
-      aws_secret: "{{ aws_secret_key_prod }}"
-      aws_region: "{{ aws_prod_region_vault }}"
-      dynamo_table: colab_gitlab
-      colab_username: "{{ colab_user_username }}"
-    register: record_results
-    ignore_errors: true
-
-- import_playbook: remove_gitlab.yaml
-  when: record_results.get('meta') == true
