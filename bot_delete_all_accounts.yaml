@@ -170,6 +170,7 @@
         'Accept': 'application/json',
         'cache-control': 'no-cache',
         'Authorization': 'Bearer {{ item.json | default('') }}'}"
+      status_code: [ 200, 201, 204 ]
     ignore_errors: yes
     register: cml_delete_results
     with_items: "{{ token_results.results }}"
