@@ -188,7 +188,7 @@
     set_fact:
       message: "{{ message + '    - ' + item.server.replace('https://', '') + ' ' + 'Account Deleted! \n' }}"
       check_flag: true
-    when: item.status_code == '200'
+    when: item.status_code == '204'
     ignore_errors: yes
     with_items: "{{ cml_results }}"
   - name: Create Fail messages for CML
