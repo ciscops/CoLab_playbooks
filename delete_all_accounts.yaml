@@ -52,49 +52,53 @@
     register: diagnostics
     ignore_errors: yes
     with_items: "{{ token_results.results }}"
-  - name: Create Lists of User's labs
-    vars:
-      cml_labs: []
-    set_fact:
-      cml_labs: "{{ cml_labs }} + [ { 'server': '{{ item.item.item }}', 'labs': {{ item.json.user_roles.labs_by_user[colab_username] | default([]) }}, 'admin_token': '{{ item.item.json }}' } ]"
-    ignore_errors: yes
-    when: item.item.failed == false
-    loop: "{{ diagnostics.results }}"
-  - name: Get User's CML Token
-    uri:
-      url: "{{ item + api_cml_authenticate }}"
-      method: POST
-      return_content: yes
-      body: "{{ {'username': colab_username, 'password': colab_user_password} | to_json }}"
-      validate_certs: no
-    register: token_results_user
-    ignore_errors: yes
-    with_items: "{{ cml_servers }}"
-  - name: Create User Token to Server Dictionary
-    vars:
-      user_token_server_dict: []
-    set_fact:
-      user_token_server_dict: "{{ user_token_server_dict | combine({item.item: item.json  | default('') })}}"
-    when: item.failed == false
-    ignore_errors: yes
-    with_items: "{{ token_results_user.results }}"
-  - name: Create Full Dictionary with labs user token and admin token
-    vars:
-      complete_cml_labs: []
-    set_fact:
-      complete_cml_labs: "{{ complete_cml_labs }} + [ {{ item | combine({'user_token': user_token_server_dict[item.server] | default('missing')}) }} ]"
-    ignore_errors: yes
-    with_items: "{{ cml_labs }}"
-  - name: Flatten results since haven't figured out loops in loops in ansible
-    vars:
-      flat_list_over_servers_labs_tokens: []
-    set_fact:
-      flat_list_over_servers_labs_tokens: "{{ flat_list_over_servers_labs_tokens }} + [ {{ {'lab': item.1, 'server': item.0.server, 'admin_token': item.0.admin_token, 'user_token': item.0.user_token } }} ]"
-    ignore_errors: yes
-    loop: "{{ complete_cml_labs | subelements('labs', 'skip_missing=True') }}"
+#  - name: Create Lists of User's labs
+#    vars:
+#      cml_labs: []
+#    set_fact:
+#      cml_labs: "{{ cml_labs }} + [ { 'server': '{{ item.item.item }}', 'labs': {{ item.json.user_roles.labs_by_user[colab_username] | default([]) }}, 'admin_token': '{{ item.item.json }}' } ]"
+#    ignore_errors: yes
+#    when: item.item.failed == false
+#    loop: "{{ diagnostics.results }}"
+#  - name: Get User's CML Token
+#    uri:
+#      url: "{{ item + api_cml_authenticate }}"
+#      method: POST
+#      return_content: yes
+#      body: "{{ {'username': colab_username, 'password': colab_user_password} | to_json }}"
+#      validate_certs: no
+#    register: token_results_user
+#    ignore_errors: yes
+#    with_items: "{{ cml_servers }}"
+#  - name: Create User Token to Server Dictionary
+#    vars:
+#      user_token_server_dict: []
+#    set_fact:
+#      user_token_server_dict: "{{ user_token_server_dict | combine({item.item: item.json  | default('') })}}"
+#    when: item.failed == false
+#    ignore_errors: yes
+#    with_items: "{{ token_results_user.results }}"
+#  - name: Create Full Dictionary with labs user token and admin token
+#    vars:
+#      complete_cml_labs: []
+#    set_fact:
+#      complete_cml_labs: "{{ complete_cml_labs }} + [ {{ item | combine({'user_token': user_token_server_dict[item.server] | default('missing')}) }} ]"
+#    ignore_errors: yes
+#    with_items: "{{ cml_labs }}"
+#  - name: Flatten results since haven't figured out loops in loops in ansible
+#    vars:
+#      flat_list_over_servers_labs_tokens: []
+#    set_fact:
+#      flat_list_over_servers_labs_tokens: "{{ flat_list_over_servers_labs_tokens }} + [ {{ {'lab': item.1, 'server': item.0.server, 'admin_token': item.0.admin_token, 'user_token': item.0.user_token } }} ]"
+#    ignore_errors: yes
+#    loop: "{{ complete_cml_labs | subelements('labs', 'skip_missing=True') }}"
+  - set_fact:
+      cml_labs: "{{ item.labs }}"
+    with_items: "{{ diagnostics.results[0].json.user_list }}"
+    when: item.username == colab_username
   - name: Stop CML Labs
     uri:
-      url: "{{ item.server  + '/api/v0/labs/' + item.lab + '/stop' }}"
+      url: "{{ cml_servers[0]  + '/api/v0/labs/' + item + '/stop' }}"
       method: PUT
       return_content: yes
       body_format: json
@@ -103,12 +107,13 @@
         'Content-Type': 'application/json',
         'Accept': 'application/json',
         'cache-control': 'no-cache',
-        'Authorization': 'Bearer {{ item.user_token | default('') }}'}"
+        'Authorization': 'Bearer {{ token_results.results[0].json }}'}"
+      status_code: [ 200, 201, 204 ]
     ignore_errors: yes
-    with_items: "{{ flat_list_over_servers_labs_tokens }}"
+    with_items: "{{ cml_labs }}"
   - name: Wipe CML Labs
     uri:
-      url: "{{ item.server  + '/api/v0/labs/' + item.lab + '/wipe' }}"
+      url: "{{ cml_servers[0] + '/api/v0/labs/' + item + '/wipe' }}"
       method: PUT
       return_content: yes
       body_format: json
@@ -117,12 +122,13 @@
         'Content-Type': 'application/json',
         'Accept': 'application/json',
         'cache-control': 'no-cache',
-        'Authorization': 'Bearer {{ item.user_token | default('') }}'}"
+        'Authorization': 'Bearer {{ token_results.results[0].json }}'}"
+      status_code: [ 200, 201, 204 ]
     ignore_errors: yes
-    with_items: "{{ flat_list_over_servers_labs_tokens }}"
+    with_items: "{{ cml_labs }}"
   - name: Delete CML Labs
     uri:
-      url: "{{ item.server  + '/api/v0/labs/' + item.lab }}"
+      url: "{{ cml_servers[0] + '/api/v0/labs/' + item + '/wipe' }}"
       method: DELETE
       return_content: yes
       body_format: json
@@ -131,9 +137,10 @@
         'Content-Type': 'application/json',
         'Accept': 'application/json',
         'cache-control': 'no-cache',
-        'Authorization': 'Bearer {{ item.user_token | default('') }}'}"
+        'Authorization': 'Bearer {{ token_results.results[0].json }}'}"
+      status_code: [ 200, 201, 204 ]
     ignore_errors: yes
-    with_items: "{{ flat_list_over_servers_labs_tokens }}"
+    with_items: "{{ cml_labs }}"
   - name: Get CML User ID
     uri:
       url: "{{ item.item + '/api/v0/users/' + colab_username + '/id' }}"
@@ -162,6 +169,7 @@
         'Accept': 'application/json',
         'cache-control': 'no-cache',
         'Authorization': 'Bearer {{ item.json | default('') }}'}"
+      status_code: [ 200, 201, 204 ]
     ignore_errors: yes
     register: cml_delete_results
     with_items: "{{ token_results.results }}"
@@ -179,14 +187,14 @@
     set_fact:
       message: "{{ message + '    - ' + item.server.replace('https://', '') + ' ' + 'Account Deleted! \n' }}"
       check_flag: true
-    when: item.status_code == '200'
+    when: item.status_code == '204'
     ignore_errors: yes
     with_items: "{{ cml_results }}"
   - name: Create Fail messages for CML
     set_fact:
       message: "{{ message + '    - ' + item.server.replace('https://', '') + ' ' + 'Failed: ' + item.status_code + ' \n' }}"
     ignore_errors: yes
-    when: item.status_code != '200'
+    when: item.status_code != '204'
     with_items: "{{ cml_results }}"
   - name: Delete AWS Account
     community.aws.iam_user:
