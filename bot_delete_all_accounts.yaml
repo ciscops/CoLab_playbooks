@@ -195,7 +195,7 @@
     set_fact:
       message: "{{ message + '    - ' + item.server.replace('https://', '') + ' ' + 'Failed: ' + item.status_code + ' \n' }}"
     ignore_errors: yes
-    when: item.status_code != '200'
+    when: item.status_code != '204'
     with_items: "{{ cml_results }}"
   - name: Delete AWS Account
     community.aws.iam_user:
