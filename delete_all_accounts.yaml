@@ -134,9 +134,25 @@
         'Authorization': 'Bearer {{ item.user_token | default('') }}'}"
     ignore_errors: yes
     with_items: "{{ flat_list_over_servers_labs_tokens }}"
+  - name: Get CML User ID
+    uri:
+      url: "{{ item.item + '/api/v0/users/' + colab_username + '/id' }}"
+      method: GET
+      return_content: yes
+      body_format: json
+      validate_certs: no
+      headers: "{
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'cache-control': 'no-cache',
+        'Authorization': 'Bearer {{ item.json }}'}"
+    when: item.failed == false
+    register: user_id_results
+    ignore_errors: yes
+    with_items: "{{ token_results.results }}"
   - name: Delete CML Account
     uri:
-      url: "{{ item.item  + '/api/v0/users/' + colab_username }}"
+      url: "{{ item.item  + '/api/v0/users/' + user_id_results.results[0].json }}"
       method: DELETE
       return_content: yes
       body_format: json
