@@ -1,6 +1,7 @@
 - hosts: localhost
   tasks:
     - name: Install python package
+      become: true
       pip:
         name:  "{{ package_name }}"
         state: "{{ state_choice }}"
