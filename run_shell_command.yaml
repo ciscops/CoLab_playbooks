@@ -1,4 +1,3 @@
 - hosts: localhost
   tasks:
-    - ansible.builtin.shell:
-        cmd: pip install --upgrade pip
+    - ansible.builtin.raw: pip install --upgrade pip
