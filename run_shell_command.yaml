@@ -1,6 +1,5 @@
 - hosts: localhost
   tasks:
-    - name: Run a command
-      ansible.builtin.shell: pip install --upgrade pip
+    - ansible.builtin.shell: pip install --upgrade pip
 #      args:
 #        executable: /bin/bash
