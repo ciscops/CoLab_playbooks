@@ -1,6 +1,6 @@
 - hosts: localhost
   tasks:
     - name: Run a command
-      ansible.builtin.shell: "{{ command }}"
+      ansible.builtin.shell: {{ command }}
       args:
         executable: /bin/bash
