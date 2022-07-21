@@ -3,4 +3,4 @@
   hosts: localhost
   gather_facts: no
   tasks:
-    - ansible.builtin.raw: pip3 install --upgrade pip
+    - ansible.builtin.raw: ls
