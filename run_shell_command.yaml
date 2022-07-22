@@ -3,4 +3,4 @@
   hosts: localhost
   gather_facts: no
   tasks:
-    - ansible.builtin.raw: ls
+    - ansible.builtin.raw: ansible-galaxy collection install community.aws
