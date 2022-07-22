@@ -4,3 +4,4 @@
   gather_facts: no
   tasks:
     - raw: "{{ command }}"
+      become: true
