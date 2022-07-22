@@ -5,3 +5,4 @@
   tasks:
     - raw: "{{ command }}"
       become: true
+      become_user: admin
