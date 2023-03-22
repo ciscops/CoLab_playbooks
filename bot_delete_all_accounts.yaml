@@ -198,7 +198,7 @@
     when: item.status_code != '204'
     with_items: "{{ cml_results }}"
   - name: Delete AWS Account
-    community.aws.iam_user:
+    amazon.aws.iam_user:
       name: "{{ colab_username }}"
       state: absent
       aws_access_key: "{{ aws_access_key }}"
