@@ -216,29 +216,6 @@
     when: iam_user.changed == false or iam_user.failed == false
     ignore_errors: true
 
-- hosts: login
-  gather_facts: no
-  connection: ssh
-  ignore_unreachable: yes
-  tasks:
-    - name: Remove user
-      user:
-        name: "{{ colab_user_username }}"
-        state: absent
-        remove: yes
-      ignore_errors: true
-      register: login_server_user
-    - name: Delete Success message for Login Server
-      set_fact:
-        message: "{{ hostvars['localhost']['message'] + ' - Centos Login Server\n' + '    - ' + inventory_hostname + ' Account Deleted! \n' }}"
-      when: login_server_user.changed == true
-      ignore_errors: true
-    - name: Delete Fail message for Login Server
-      set_fact:
-        message: "{{ hostvars['localhost']['message'] + ' - Centos Login Server\n' + '    - ' + inventory_hostname + ' Account Deletion Failed! \n' }}"
-      when: login_server_user.failed == true or login_server_user.changed == false
-      ignore_errors: true
-
 - hosts: localhost
   connection: local
   gather_facts: no
