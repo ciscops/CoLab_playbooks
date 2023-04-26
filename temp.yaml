@@ -7,9 +7,9 @@
     - name: Save final password
       set_fact:
         colab_user_password_final: "{{ results.meta }}"
-    # - name: Encrypt string
-    #   encrypt_or_decrypt_string:
-    #     action: "encrypt"
-    #     message: "{{ colab_user_password_final }}"
-    #     key: "{{ cipher_vault }}"
-    #   register: encrypted_string
+    - name: Encrypt string
+      encrypt_or_decrypt_string:
+        action: "encrypt"
+        message: "{{ colab_user_password_final }}"
+        key: "{{ cipher_vault }}"
+      register: encrypted_string
