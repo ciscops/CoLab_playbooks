@@ -47,5 +47,5 @@
       mfa_devices_list: "{{ mfa_devices }}"
   - debug: 
       msg:
-        - "{{ colabot_user_list }}"  
-        - "{{ mfa_devices_list }}"  
+        - "{{ item.mfa_devices }}"
+    with_items: "{{ mfa_devices_list }}"
