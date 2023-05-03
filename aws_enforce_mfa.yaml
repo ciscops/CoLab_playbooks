@@ -51,6 +51,8 @@
   #   with_items: "{{ mfa_devices_list }}"
   - name: Debug user info if MFA devices list is empty
     debug: 
-      msg: "{{ item }}"
+      msg: 
+        - "{{ item }}"
+        - "{{ item.mfa_devices }}"
     loop: "{{ mfa_devices_list }}"
-    when: item == "[]"
+    when: item.mfa_devices == "[]"
