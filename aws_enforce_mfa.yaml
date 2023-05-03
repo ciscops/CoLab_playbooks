@@ -44,7 +44,7 @@
     with_items: "{{ colabot_user_list }}"
   - name: Save mfa devices to a list
     set_fact:
-      mfa_devices_list: "{{ mfa_devices }}"
+      mfa_devices_list: "{{ mfa_devices.results }}"
   - debug: 
       msg:
         - "{{ item.mfa_devices }}"
