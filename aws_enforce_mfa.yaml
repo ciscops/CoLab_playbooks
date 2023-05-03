@@ -39,7 +39,7 @@
       colabot_user_list: "{{ results }}"
   - name: List MFA devices
     community.aws.iam_mfa_device_info:
-      user_name: item.user_name
+      user_name: "{{ item.user_name }}"
     register: mfa_devices    
     with_items: "{{ colabot_user_list }}"
   - name: Save mfa devices to a list
