@@ -53,4 +53,4 @@
     debug: 
       msg: "{{ item }}"
     loop: "{{ colabot_user_list }}"
-    when: item.user_name not in mfa_devices_list | map(attribute='user_name') | list and item.mfa_devices == "[]"
+    when: item == "[]"
