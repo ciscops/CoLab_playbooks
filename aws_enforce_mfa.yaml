@@ -45,7 +45,12 @@
   - name: Save mfa devices to a list
     set_fact:
       mfa_devices_list: "{{ mfa_devices.results }}"
-  - debug: 
-      msg:
-        - "{{ item.mfa_devices }}"
-    with_items: "{{ mfa_devices_list }}"
+  # - debug: 
+  #     msg:
+  #       - "{{ item.mfa_devices }}"
+  #   with_items: "{{ mfa_devices_list }}"
+  - name: Debug user info if MFA devices list is empty
+    debug: 
+      msg: "{{ item }}"
+    loop: "{{ colabot_user_list }}"
+    when: item.user_name not in mfa_devices_list | map(attribute='user_name') | list and item.mfa_devices == "[]"
