@@ -52,5 +52,5 @@
   - name: Debug user info if MFA devices list is empty
     debug: 
       msg: "{{ item }}"
-    loop: "{{ colabot_user_list }}"
+    loop: "{{ mfa_devices }}"
     when: item == "[]"
