@@ -55,4 +55,5 @@
         - "{{ item }}"
         - "{{ item.mfa_devices }}"
     loop: "{{ mfa_devices_list }}"
-    when: item.mfa_devices == "[]"
+    when: item.mfa_devices == "[]" 
+    no_log: true
