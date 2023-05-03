@@ -52,5 +52,5 @@
   - name: Debug user info if MFA devices list is empty
     debug: 
       msg: "{{ item }}"
-    loop: "{{ mfa_devices }}"
+    loop: "{{ mfa_devices_list }}"
     when: item == "[]"
