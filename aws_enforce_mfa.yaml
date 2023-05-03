@@ -36,7 +36,7 @@
     register: results
   - name: Save users to a list
     set_fact:
-      colabot_user_list: "{{ results }}"
+      colabot_user_list: "{{ results.iam_users }}"
   - name: List MFA devices
     community.aws.iam_mfa_device_info:
       user_name: "{{ item.user_name }}"
