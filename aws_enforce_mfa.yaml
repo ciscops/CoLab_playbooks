@@ -29,6 +29,7 @@
     api_cml_create_account: '/api/v0/users/'
     message: ''
     meraki_account_id: ""
+    ansible_verbosity: 0
   tasks:
   - name: Get IAM user info
     amazon.aws.iam_user_info:
@@ -41,10 +42,10 @@
     community.aws.iam_mfa_device_info:
       user_name: "{{ item.user_name }}"
     register: mfa_devices    
-    with_items: "{{ colabot_user_list }}"
+    with_items: "{{ colabot_user_list.results  }}"
   - name: Save mfa devices to a list
     set_fact:
-      mfa_devices_list: "{{ mfa_devices.results }}"
+      mfa_devices_list: "{{ mfa_devices }}"
   # - debug: 
   #     msg:
   #       - "{{ item.mfa_devices }}"
@@ -53,7 +54,7 @@
     debug: 
       msg: 
         - "{{ item }}"
-        - "{{ item.mfa_devices }}"
+        #- "{{ item.mfa_devices }}"
     loop: "{{ mfa_devices_list }}"
-    when: item.mfa_devices == "[]" 
-    no_log: true
+    #when: item.mfa_devices == "[]" 
+    
