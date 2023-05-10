@@ -1,0 +1,204 @@
+---
+- name: Enforce aws mfa on iam accounts
+  hosts: localhost
+  gather_facts: false
+  ignore_unreachable: true
+  vars:
+    iam_group: "{{ aws_iam_group_vault }}"                                                       # From Vault
+    wxt_bearer: "{{ wxt_bearer_vault }}"                                                         # From Vault
+    wxt_bearer_alert: "{{ wxt_bearer_alert_vault }}"                                             # From Vault
+    wxt_notif_room_id: "{{ wxt_notif_room_id_vault }}"                                           # From Vault
+    tag_name: "MFA_last_enabled"                                                                 # Tag name
+    email: "email"                                                                               # Email tag name
+    tag_dict: { "MFA_last_enabled": 0 }                                                          # Tag dict structure
+    face_list: ["&#x1F642;", "&#x1F610;", "&#x1F62C;", "&#x1F620;", "&#x1F621;"]                 # Emoji list
+    days_plural: ["days", "day", "days", "days", "days", "days"]                                 # Correct plural/singular version
+    warning_msg: "**&#x1F6A8; Warning &#x1F6A8;**"                                               # Warning message header
+    mfa_disabled_msg: "Mfa on your AWS account is currently disabled and needs to be turned on"  # Warning message
+    alert_room_message: "The following users will have their accounts deleted in 1 business day due to MFA being disabled:"
+    user_tag_dict: {}
+    users_skipped: {}
+    new_dict: []
+    iam_user_list_tags_edited: []
+    alert_flag: false
+  tasks:
+    - name: Get all IAM users in the iam group
+      amazon.aws.iam_user_info:
+        group: "{{ iam_group }}"
+      register: results
+    - name: Save all users to a list
+      ansible.builtin.set_fact:
+        colabot_user_list: "{{ results.iam_users }}"
+    - name: Get user tags
+      amazon.aws.iam_user:
+        name: "{{ item.user_name }}"
+        state: present
+        purge_tags: false
+      register: results
+      with_items: "{{ colabot_user_list }}"
+    - name: Save user list
+      ansible.builtin.set_fact:
+        iam_user_list_tags: "{{ results.results }}"
+    - name: Add the tag to any user who does not have it
+      amazon.aws.iam_user:
+        name: "{{ item.user.user_name }}"
+        state: present
+        purge_tags: false
+        tags:
+          MFA_last_enabled: 0
+      when: tag_name not in item.user.tags.keys()
+      with_items: "{{ iam_user_list_tags }}"
+    - name: Add tag to user in local list
+      ansible.builtin.set_fact:
+        iam_user_list_tags_edited: "{{ iam_user_list_tags_edited | default([]) +
+                                    [item | combine({'user': {'tags': tag_dict}},
+                                    {'iam_user': {'user': {'tags': tag_dict}}},
+                                    recursive=True)] }}"
+      with_items: "{{ iam_user_list_tags }}"
+      when: tag_name not in item.user.tags.keys() and tag_name not in item.iam_user.user.tags.keys()
+    - name: Add the user object into the local list
+      ansible.builtin.set_fact:
+        iam_user_list_tags_edited: "{{ iam_user_list_tags_edited | default([]) + [item] }}"
+      with_items: "{{ iam_user_list_tags }}"
+      when: tag_name in item.user.tags.keys() and tag_name in item.iam_user.user.tags.keys()
+    - name: Debug the edited list
+      ansible.builtin.debug:
+        msg: "{{ iam_user_list_tags_edited }}"
+    - name: Create index-able dict of users and their tags
+      ansible.builtin.set_fact:
+        user_tag_dict: "{{ user_tag_dict | combine({item.user.user_name:
+                        {'mfa': item.user.tags.MFA_last_enabled,
+                        'email': item.user.tags.email,
+                        'account_id': item.iam_user.user.arn.replace('arn:aws:iam::', '').replace(':user/' + item.user.user_name, '')}}) }}"
+      with_items: "{{ iam_user_list_tags_edited }}"
+      when: email in item.user.tags
+    - name: Create list of skipped users due to no email
+      ansible.builtin.set_fact:
+        users_skipped: "{{ users_skipped | combine({item.user.user_name: {'mfa': item.user.tags.MFA_last_enabled}}) }}"
+      with_items: "{{ iam_user_list_tags_edited }}"
+      when: email not in item.user.tags
+    - name: Retrieve MFA devices for all users in the list
+      community.aws.iam_mfa_device_info:
+        user_name: "{{ item.user_name }}"
+      register: mfa_devices
+      with_items: "{{ colabot_user_list }}"
+    - name: Save MFA devices to a list
+      ansible.builtin.set_fact:
+        mfa_devices_list: "{{ mfa_devices.results }}"
+    - name: Set users with mfa enabled to have a tag date of 0
+      amazon.aws.iam_user:
+        name: "{{ item.item.user_name }}"
+        state: present
+        purge_tags: false
+        tags:
+          MFA_last_enabled: 0
+      when: # We need to make sure any user with mfa enabled has their MFA tag set to 0 before we do checks
+        - item.mfa_devices|length != 0 # If the user has mfa devices
+        - user_tag_dict[item.item.user_name]['mfa']|int > 0 # And the user has a tag date > 0, set it to 0
+      with_items: "{{ mfa_devices_list }}"
+    - name: Debug the pre-change user tag dictionary
+      ansible.builtin.debug:
+        msg: "Pre-change dict: {{ user_tag_dict }}"
+    - name: Update the local dict to incorporate the change to mfa dates
+      ansible.builtin.set_fact:
+        user_tag_dict: "{{ user_tag_dict | combine({item.item.user_name: {'mfa': 0}}) }}"
+      when: # We need to update the local dicationary to ensure that the change is incorporated
+        - item.mfa_devices|length != 0 # If the user has mfa devices
+        - user_tag_dict[item.item.user_name]['mfa']|int > 0 # And the user has a tag date > 0, set it to 0
+      with_items: "{{ mfa_devices_list }}"
+    - name: Debug the post-change user tag dictionary
+      ansible.builtin.debug:
+        msg: "Post-change dict {{ user_tag_dict }}"
+    - name: Send WxT account deletion warning Message
+      ansible.builtin.uri:
+        url: "https://api.ciscospark.com/v1/messages"
+        method: POST
+        return_content: true
+        body: "{{ {'toPersonEmail': user_email, 'markdown': message} | to_json }}"
+        validate_certs: false
+        headers: "{{ {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + wxt_bearer} }}"
+      when: # We need to warn the user if they are going to lose their account due to no mfa enabled (range  1 > 4 days for warning)
+        - item.item.user_name in user_tag_dict
+        - item.mfa_devices|length == 0 # If the user has no mfa devices
+        - user_tag_dict[item.item.user_name]['mfa']|int >= 0 # If the user has more than 0 days left warn
+        - user_tag_dict[item.item.user_name]['mfa']|int < 5 # If the user has less than 5 days leff warn
+      with_items: "{{ mfa_devices_list }}"
+      vars:
+        user_email: "{{ user_tag_dict[item.item.user_name]['email'] }}"
+        colab_aws_account_number: "{{ user_tag_dict[item.item.user_name]['account_id'] }}"
+        message: "{{ warning_msg }} \n\n
+                {{ mfa_disabled_msg }} {{ face_list[user_tag_dict[item.item.user_name]['mfa'] | int] }} \n
+                - Your AWS account will be deleted in {{ 5 - user_tag_dict[item.item.user_name]['mfa'] | int }}
+                business {{ days_plural[5 - user_tag_dict[item.item.user_name]['mfa'] | int] }} if mfa is not enabled \n
+                - Console signin: https://{{ colab_aws_account_number }}.signin.aws.amazon.com/console \n
+                - MFA dashboard: https://console.aws.amazon.com/iamv2/home#/security_credentials/mfa \n
+                - MFA device name **MUST BE** the following: {{ item.item.user_name }}"
+    - name: Increment user mfa tag
+      amazon.aws.iam_user:
+        name: "{{ user_name }}"
+        state: present
+        purge_tags: false
+        tags:
+          MFA_last_enabled: "{{ user_mfa }}"
+      when: # We need to update the user's mfa tag by adding 1
+        - item.item.user_name in user_tag_dict
+        - item.mfa_devices|length == 0 # If the user has no mfa devices
+        - user_tag_dict[item.item.user_name]['mfa']|int >= 0 # If the user has more than 0 days left warn
+        - user_tag_dict[item.item.user_name]['mfa']|int < 5 # If the user has less than 5 days leff warn
+      with_items: "{{ mfa_devices_list }}"
+      vars:
+        user_name: "{{ item.item.user_name }}"
+        user_mfa: "{{ user_tag_dict[item.item.user_name]['mfa'] | int + 1 }}"
+    - name: Send WxT account deletion Message
+      ansible.builtin.uri:
+        url: "https://api.ciscospark.com/v1/messages"
+        method: POST
+        return_content: true
+        body: "{{ {'toPersonEmail': user_email, 'markdown': message} | to_json }}"
+        validate_certs: false
+        headers: "{{ {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + wxt_bearer} }}"
+      when: # We need to delete the user if they have no enabled mfa in 5 days
+        - item.item.user_name in user_tag_dict
+        - item.mfa_devices|length == 0 # If the user has no mfa devices
+        - user_tag_dict[item.item.user_name]['mfa']|int >= 5 # If the user has not had mfa enabled for more than 5 days
+      with_items: "{{ mfa_devices_list }}"
+      vars:
+        user_email: "{{ user_tag_dict[item.item.user_name]['email'] }}"
+        message: "&#x1F6A8; **AWS Account Deleted** &#x1F6A8; \n\n
+                  - Reason: MFA was disabled for more than {{ user_tag_dict[item.item.user_name]['mfa'] | int }} business days"
+    - name: Delete AWS account
+      amazon.aws.iam_user:
+        name: "{{ user_name }}"
+        state: absent
+      when: # We need to delete the user if they have no enabled mfa in 5 days
+        - item.item.user_name in user_tag_dict
+        - item.mfa_devices|length == 0 # If the user has no mfa devices
+        - user_tag_dict[item.item.user_name]['mfa']|int >= 5 # If the user has not had mfa enabled for more than 5 days
+      with_items: "{{ mfa_devices_list }}"
+      vars:
+        user_name: "{{ item.item.user_name }}"
+    - name: Create alert message to alert room when user(s) will be deleted in 1 day
+      ansible.builtin.set_fact:
+        alert_room_message: "{{ alert_room_message }} \n - Username: {{ item.item.user_name }} | Email: {{ user_tag_dict[item.item.user_name]['email'] }} "
+        alert_flag: true
+      when: # Alert the room when a user will have their account deleted in 1 day. Create a message
+        - item.item.user_name in user_tag_dict
+        - item.mfa_devices|length == 0 # If the user has no mfa devices
+        - user_tag_dict[item.item.user_name]['mfa']|int == 4 # If the user has 1 day left till their account is deleted
+      with_items: "{{ mfa_devices_list }}"
+    - name: Alert room when user(s) are about to be deleted in 1 day
+      ansible.builtin.uri:
+        url: "https://api.ciscospark.com/v1/messages"
+        method: POST
+        return_content: true
+        body: "{{ {'roomId': room_id, 'markdown': message} | to_json }}"
+        validate_certs: false
+        headers: "{{ {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + wxt_bearer_alert} }}"
+      when: # We need to alert the room when users are about to be deleted
+        - alert_flag
+      vars:
+        room_id: "{{ wxt_notif_room_id }}"
+        message: "{{ alert_room_message }}"
+    - name: Debug the skipped users in the process of monitoring aws accounts for mfa
+      ansible.builtin.debug:
+        msg: "Skipped users {{ users_skipped }}"
